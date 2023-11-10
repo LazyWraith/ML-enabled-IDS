@@ -1,0 +1,28 @@
+[7.5835] Evaluating classifier: Logistic Regression...[10.3277] Generating results...
+[10.3277]Training Accuracy Logistic Regression 74.57526759280346  Test Accuracy Logistic Regression 74.08756907754905
+[10.3277]Training Precesion Logistic Regression 69.3464761560258  Test Precesion Logistic Regression 69.03467439893682
+[10.3277]Training Recall Logistic Regression 77.76688526806842  Test Recall Logistic Regression 77.0288487462928
+[11.4203] Evaluating classifier: KNeighborsClassifier...[64.0586] Generating results...
+[64.0586]Training Accuracy KNeighborsClassifier 98.3056251423366  Test Accuracy KNeighborsClassifier 98.1903200340074
+[64.0586]Training Precesion KNeighborsClassifier 97.43068515062649  Test Precesion KNeighborsClassifier 97.17731248343493
+[64.0586]Training Recall KNeighborsClassifier 98.83375025353254  Test Recall KNeighborsClassifier 98.85413858182798
+[69.0676] Evaluating classifier: GaussianNB...[73.0543] Generating results...
+[73.0543]Training Accuracy GaussianNB 64.3072952250816  Test Accuracy GaussianNB 63.727454909819635
+[73.0543]Training Precesion GaussianNB 56.141415367190504  Test Precesion GaussianNB 55.80554439533949
+[73.0543]Training Recall GaussianNB 93.83408829693732  Test Recall GaussianNB 93.62361822593691
+[90.8880] Evaluating classifier: Linear SVC(LBasedImpl)...[93.6587] Generating results...
+[93.6587]Training Accuracy Linear SVC(LBasedImpl) 99.97115311622258  Test Accuracy Linear SVC(LBasedImpl) 99.9635634906176
+[93.6587]Training Precesion Linear SVC(LBasedImpl) 99.93581297929124  Test Precesion Linear SVC(LBasedImpl) 99.91918103448276
+[93.6587]Training Recall Linear SVC(LBasedImpl) 100.0  Test Recall Linear SVC(LBasedImpl) 100.0
+[96.1650] Evaluating classifier: DecisionTreeClassifier...[99.1720] Generating results...
+[99.1720]Training Accuracy DecisionTreeClassifier 100.0  Test Accuracy DecisionTreeClassifier 100.0
+[99.1720]Training Precesion DecisionTreeClassifier 100.0  Test Precesion DecisionTreeClassifier 100.0
+[99.1720]Training Recall DecisionTreeClassifier 100.0  Test Recall DecisionTreeClassifier 100.0
+[110.1757] Evaluating classifier: RandomForestClassifier...[115.8868] Generating results...
+[115.8868]Training Accuracy RandomForestClassifier 100.0  Test Accuracy RandomForestClassifier 100.0
+[115.8868]Training Precesion RandomForestClassifier 100.0  Test Precesion RandomForestClassifier 100.0
+[115.8868]Training Recall RandomForestClassifier 100.0  Test Recall RandomForestClassifier 100.0
+[175.3157] Evaluating classifier: PCA RandomForest...[178.1791] Generating results...
+[178.1791]Training Accuracy PCA RandomForest 100.0  Test Accuracy PCA RandomForest 98.02028299022287
+[178.1791]Training Precesion PCA RandomForest 100.0  Test Precesion PCA RandomForest 97.15425531914894
+[178.1791]Training Recall PCA RandomForest 100.0  Test Recall PCA RandomForest 98.49015907252628

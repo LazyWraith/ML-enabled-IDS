@@ -1,0 +1,15 @@
+{
+  "Logistic Regression": {
+    "C": 0.9005185392957903,
+    "max_iter": 610,
+    "solver": "liblinear"
+  },
+  "K-Nearest Neighbors": {
+    "n_neighbors": 4
+  },
+  "XGBoost": {
+    "n_estimators": 69,
+    "max_depth": 8,
+    "learning_rate": 0.010486881032120586
+  }
+}
