@@ -72,7 +72,7 @@ y_test = y_test.astype('int')
 
 def objective(trial, model_name):
     params = {
-        'var_smoothing': trial.suggest_float('var_smoothing', 1e-12, 1e-2, log=True),
+        'var_smoothing': trial.suggest_float('var_smoothing', 9.3e-8, 9.5e-8, log=True),
     }
     model = GaussianNB(**params)
 
@@ -82,7 +82,7 @@ def objective(trial, model_name):
     return accuracy
 
 study_gnb = optuna.create_study(direction='maximize')
-study_gnb.optimize(lambda trial: objective(trial, "gnb"), n_trials=10000)
+study_gnb.optimize(lambda trial: objective(trial, "gnb"), n_trials=1000)
 best_params_gnb = study_gnb.best_params
 
 print("Best Hyperparameters for GaussianNB:", best_params_gnb)

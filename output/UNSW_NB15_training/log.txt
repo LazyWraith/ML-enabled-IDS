@@ -1,0 +1,64 @@
+[000.0000] Init complete!
+[000.0000] Reading from ./input/UNSW_NB15/UNSW_NB15_training-set.csv
+[000.4628] Mapping outcomes...
+[001.7015] Running preprocess...
+[002.3067] Number of original features is 40 and of reduced features is 20
+[002.3457] Preparing Logistic Regression
+[025.8982] Training time: 23.5525
+[025.8982] Evaluating classifier: Logistic Regression...
+[025.9599] Testing time: 0.0617
+[025.9599] Generating results...
+[025.9599] Training Accuracy Logistic Regression 93.96644651939573  Test Accuracy Logistic Regression 93.90903018157528
+[025.9599] Training Precesion Logistic Regression 94.3354282734583  Test Precesion Logistic Regression 94.66030195381883
+[025.9599] Training Recall Logistic Regression 94.73582669569771  Test Recall Logistic Regression 94.23140678528014
+[026.1079] Preparing KNeighborsClassifier
+[026.1139] Training time: 0.0050
+[026.1139] Evaluating classifier: KNeighborsClassifier...
+[042.7634] Testing time: 16.6495
+[042.7634] Generating results...
+[042.7634] Training Accuracy KNeighborsClassifier 98.20997494875883  Test Accuracy KNeighborsClassifier 96.21667577579402
+[042.7634] Training Precesion KNeighborsClassifier 98.70414562406349  Test Precesion KNeighborsClassifier 97.39032620922384
+[042.7634] Training Recall KNeighborsClassifier 98.03764848551664  Test Recall KNeighborsClassifier 95.67908056138799
+[044.0237] Preparing GaussianNB
+[044.0587] Training time: 0.0350
+[044.0587] Evaluating classifier: GaussianNB...
+[044.2382] Testing time: 0.1795
+[044.2382] Generating results...
+[044.2382] Training Accuracy GaussianNB 76.84961664009717  Test Accuracy GaussianNB 76.51666970304245
+[044.2382] Training Precesion GaussianNB 90.83038937846966  Test Precesion GaussianNB 90.45908806995627
+[044.2382] Training Recall GaussianNB 64.48474492186423  Test Recall GaussianNB 64.01812354956348
+[044.4899] Preparing Linear SVC(LBasedImpl)
+[055.0795] Training time: 10.5897
+[055.0795] Evaluating classifier: Linear SVC(LBasedImpl)...
+[055.1451] Testing time: 0.0656
+[055.1451] Generating results...
+[055.1451] Training Accuracy Linear SVC(LBasedImpl) 92.73817657329386  Test Accuracy Linear SVC(LBasedImpl) 92.50622457035283
+[055.1461] Training Precesion Linear SVC(LBasedImpl) 94.04116100889212  Test Precesion Linear SVC(LBasedImpl) 94.34797412325501
+[055.1461] Training Recall Linear SVC(LBasedImpl) 92.69079183088499  Test Recall Linear SVC(LBasedImpl) 91.86650458614211
+[055.2921] Preparing Decision Tree
+[056.9380] Training time: 1.6449
+[056.9380] Evaluating classifier: DecisionTreeClassifier...
+[057.0220] Testing time: 0.0840
+[057.0230] Generating results...
+[057.0230] Training Accuracy DecisionTreeClassifier 99.94837926060882  Test Accuracy DecisionTreeClassifier 99.90283597498026
+[057.0230] Training Precesion DecisionTreeClassifier 99.91462642174548  Test Precesion DecisionTreeClassifier 99.87852015461071
+[057.0230] Training Recall DecisionTreeClassifier 99.99173166496706  Test Recall DecisionTreeClassifier 99.94474527572108
+[059.4040] Preparing RandomForest
+[072.6009] Training time: 13.1969
+[072.6009] Evaluating classifier: RandomForestClassifier...
+[073.4027] Testing time: 0.8018
+[073.4027] Generating results...
+[073.4027] Training Accuracy RandomForestClassifier 100.0  Test Accuracy RandomForestClassifier 99.99392724843626
+[073.4027] Training Precesion RandomForestClassifier 100.0  Test Precesion RandomForestClassifier 99.98895027624309
+[073.4027] Training Recall RandomForestClassifier 100.0  Test Recall RandomForestClassifier 100.0
+[073.7917] Preparing Reduced RandomForest
+[121.9270] Training time: 48.1354
+[121.9270] Evaluating classifier: Reduced RandomForest...
+[123.0817] Testing time: 1.1547
+[123.0817] Generating results...
+[123.0817] Training Accuracy Reduced RandomForest 97.66188415698778  Test Accuracy Reduced RandomForest 95.35434505374386
+[123.0817] Training Precesion Reduced RandomForest 98.7785359278915  Test Precesion Reduced RandomForest 97.20765899247777
+[123.0817] Training Recall Reduced RandomForest 96.95449659620208  Test Recall Reduced RandomForest 94.25350867499172
+[123.3027] Preparing XGBoost
+[124.2537] Training time: 0.9510
+[124.3377] Training Error XGBOOST 0.12316441597073942  Test error XGBOOST 0.18146230227939078

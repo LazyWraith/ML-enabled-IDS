@@ -1,0 +1,7 @@
+{
+  "DecisionTree": {
+    "max_depth": 5,
+    "min_samples_split": 11,
+    "min_samples_leaf": 6
+  }
+}

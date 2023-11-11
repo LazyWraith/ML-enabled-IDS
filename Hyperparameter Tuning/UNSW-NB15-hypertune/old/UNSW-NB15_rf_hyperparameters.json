@@ -1,9 +1,0 @@
-{
-  "RandomForestClassifier": {
-    "n_estimators": 53,
-    "max_depth": 15,
-    "min_samples_split": 2,
-    "min_samples_leaf": 2,
-    "max_features": 0.4414469827896669
-  }
-}

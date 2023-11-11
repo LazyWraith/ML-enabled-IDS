@@ -1,0 +1,30 @@
+dt
+'max_depth': 10, 'min_samples_split': 13, 'min_samples_leaf': 3
+result: 0.7268522479055098
+
+gnb
+'var_smoothing': 9.437310900762216e-08
+result: 0.8373911406915667
+
+knn
+'n_neighbors': 21
+result: 0.8535140098436761
+
+xgb
+'n_estimators': 80, 'max_depth': 3, 'learning_rate': 0.001182925709827524
+
+lr
+'C': 0.36585696635446396, 'max_iter': 868, 'solver': 'lbfgs'
+result: 0.7394562595171694
+
+lsvc
+'C': 1.0031805066310098e-05, 'max_iter': 711
+result: 0.7231280761487615
+
+rf
+'n_estimators': 26, 'max_depth': 4, 'min_samples_split': 9, 'min_samples_leaf': 9, 'max_features': 0.7856121223761253
+result: 0.7307874370512316
+
+xgb
+'n_estimators': 80, 'max_depth': 3, 'learning_rate': 0.001182925709827524
+result: 0.6806223302022916

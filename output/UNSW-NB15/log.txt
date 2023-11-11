@@ -1,0 +1,3 @@
+[000.0000] Init complete!
+[000.0000] Reading from ./input/UNSW_NB15/UNSW_NB15_training-set.csv
+[000.7743] Mapping outcomes...

@@ -73,7 +73,7 @@ y_test = y_test.astype('int')
 def objective(trial, model_name):
 
     params = {
-        'n_neighbors': trial.suggest_int('n_neighbors', 2, 50),
+        'n_neighbors': trial.suggest_int('n_neighbors', 2, 10),
     }
     model = KNeighborsClassifier(**params)
     model.fit(x_train, y_train)
