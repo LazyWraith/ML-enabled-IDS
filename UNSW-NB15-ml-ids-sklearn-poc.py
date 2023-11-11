@@ -132,23 +132,19 @@ def Scaling(df_num, cols):
     return std_df
 
 def preprocess(dataframe):
-    printlog(f"[{get_ts()}] Running preprocess...")
-    df_num = dataframe.drop(cat_cols, axis=1)
+    df_num = dataframe.drop(cat_cols, axis=1)  # Drop 'attack_cat' and 'Label'
     num_cols = df_num.columns
     scaled_df = Scaling(df_num, num_cols)
-
+    
     dataframe.drop(labels=num_cols, axis="columns", inplace=True)
     dataframe[num_cols] = scaled_df[num_cols]
-
-    dataframe.loc[dataframe['label'] == "Normal", "label"] = 0
-    dataframe.loc[dataframe['label'] != 0, "label"] = 1
-
-    dataframe = pd.get_dummies(dataframe, columns=['proto', 'service', 'state', 'attack_cat'])
+    
+    dataframe = pd.get_dummies(dataframe, columns=['proto', 'state', 'service'])
     return dataframe
 
 pie_plot(data_train, ['proto', 'label'], 1, 2)
 
-cat_cols = ['proto', 'service', 'state', 'attack_cat']
+cat_cols = ['attack_cat', 'Label']
 
 scaled_train = preprocess(data_train)
 
@@ -210,7 +206,7 @@ evaluate_classification(gnb, "GaussianNB", x_train, x_test, y_train, y_test)
 lin_svc = svm.LinearSVC(**lin_svc_params).fit(x_train, y_train)
 evaluate_classification(lin_svc, "Linear SVC(LBasedImpl)", x_train, x_test, y_train, y_test)
 
-dt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
+# dt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
 tdt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
 evaluate_classification(tdt, "DecisionTreeClassifier", x_train, x_test, y_train, y_test)
 
