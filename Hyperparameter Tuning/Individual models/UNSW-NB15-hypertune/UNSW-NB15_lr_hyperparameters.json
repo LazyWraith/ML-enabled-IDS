@@ -1,0 +1,7 @@
+{
+  "Logistic Regression": {
+    "C": 1.1829793279084222,
+    "max_iter": 102,
+    "solver": "lbfgs"
+  }
+}

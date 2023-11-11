@@ -27,7 +27,6 @@ generate_statistics_pie = True
 dataset_name = "UNSW-NB15"
 output_dir = "./output/UNSW-NB15/UNSW_NB15_testing"
 train_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
-test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
 # Models to evaluate
 bool_lr         = True
 bool_knn        = True
@@ -114,24 +113,17 @@ printlog(f"[{get_ts()}] Reading from {train_path}")
 
 # Read Train and Test dataset
 data_train = pd.read_csv(train_path)
-data_test = pd.read_csv(test_path)
 data_train.head()
 columns = (['id', 'dur', 'proto', 'service', 'state', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate', 'sttl', 'dttl', 'sload', 'dload', 'sloss', 'dloss', 'sinpkt', 'dinpkt', 'sjit', 'djit', 'swin', 'stcpb', 'dtcpb', 'dwin', 'tcprtt', 'synack', 'ackdat', 'smean', 'dmean', 'trans_depth', 'response_body_len', 'ct_srv_src', 'ct_state_ttl', 'ct_dst_ltm', 'ct_src_dport_ltm', 'ct_dst_sport_ltm', 'ct_dst_src_ltm', 'is_ftp_login', 'ct_ftp_cmd', 'ct_flw_http_mthd', 'ct_src_ltm', 'ct_srv_dst', 'is_sm_ips_ports', 'attack_cat', 'label'])
 
 # Assign names for columns
-
-
 data_train.columns = columns
-data_test.columns = columns
 data_train.info()
 data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
 
 printlog(f"[{get_ts()}] Mapping outcomes...")
 data_train.loc[data_train['label'] == "Normal", "label"] = 0
 data_train.loc[data_train['label'] != 0, "label"] = 1
-
-data_test.loc[data_test['label'] == "Normal", "label"] = 0
-data_test.loc[data_test['label'] != 0, "label"] = 1
 
 def pie_plot(df, cols_list, rows, cols):
     # print(f"[{get_ts()}] Generating results...", flush=True)
@@ -150,44 +142,62 @@ def Scaling(df_num, cols):
     std_df = pd.DataFrame(std_scaler_temp, columns=cols)
     return std_df
 
+# def preprocess(dataframe):
+#     df_num = dataframe.drop(cat_cols, axis=1)  # Drop 'attack_cat' and 'Label'
+#     num_cols = df_num.columns
+#     scaled_df = Scaling(df_num, num_cols)
+    
+#     dataframe.drop(labels=num_cols, axis="columns", inplace=True)
+#     dataframe[num_cols] = scaled_df[num_cols]
+    
+#     dataframe = pd.get_dummies(dataframe, columns=['proto', 'service', 'state'])
+#     return dataframe
+
 def preprocess(dataframe):
-    df_num = dataframe.drop(cat_cols, axis=1)
+    printlog(f"[{get_ts()}] Running preprocess...")
+    # Drop 'attack_cat' and 'label'
+    df_num = dataframe.drop(cat_cols, axis=1)  
+    
+    # Separate numerical and categorical columns
     num_cols = df_num.select_dtypes(include=[np.number]).columns
     obj_cols = ['proto', 'service', 'state']
+
+    # One-hot encode categorical columns
     dataframe = pd.get_dummies(dataframe, columns=obj_cols)
+
+    # Separate numerical and label columns
     df_num = dataframe[num_cols]
     labels = dataframe['label']
+
+    # Apply RobustScaler to numerical columns
     std_scaler = RobustScaler()
     std_scaler_temp = std_scaler.fit_transform(df_num)
     std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
+
+    # Combine scaled numerical columns and labels
     dataframe = pd.concat([std_df, labels], axis=1)
+
     return dataframe
 
+cat_cols = ['attack_cat', 'label']
 
 if (generate_statistics_pie):
     pie_plot(data_train, ['proto', 'service'], 1, 2)
     pie_plot(data_train, ['attack_cat', 'label'], 1, 2)
 
-cat_cols = ['attack_cat', 'label']
 scaled_train = preprocess(data_train)
-scaled_test = preprocess(data_test)
 
-x_train = scaled_train.drop(['label'], axis=1).values
-y_train = scaled_train['label'].values
+x = scaled_train.drop(['label'] , axis = 1).values
+y = scaled_train['label'].values
 
-x_test = scaled_test.drop(['label'], axis=1).values
-y_test = scaled_test['label'].values
+pca = PCA(n_components=20)
+pca = pca.fit(x)
+x_reduced = pca.transform(x)
+printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
 
-y_train = y_train.astype('int')
-y_test = y_test.astype('int')
-
-pca_train = PCA(n_components=20)
-pca_test = PCA(n_components=20)
-x_train_reduced = pca_train.fit_transform(x_train)
-x_test_reduced = pca_test.fit_transform(x_test)
-printlog(f"[{get_ts()}] Number of original features for training set is {x_train.shape[1]} and of reduced features is {x_train_reduced.shape[1]}")
-printlog(f"[{get_ts()}] Number of original features for testing set is {x_test.shape[1]} and of reduced features is {x_test_reduced.shape[1]}")
-
+y = y.astype('int')
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=0.2, random_state=42)
 
 kernal_evals = dict()
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):

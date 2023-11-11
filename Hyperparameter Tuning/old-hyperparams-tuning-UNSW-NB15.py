@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,25 +16,20 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import optuna
 
+# result output
 output_dir = "./UNSW-NB15-hypertune"
-train_path = "../../input/UNSW_NB15/UNSW_NB15_training-set.csv"
-test_path = "../../input/UNSW_NB15/UNSW_NB15_testing-set.csv"
-Path(output_dir).mkdir(parents=True, exist_ok=True)
-# Read Train and Test datasets
+train_path = "../input/UNSW_NB15/UNSW_NB15_training-set.csv"
+
+# Read Train and Test dataset
 data_train = pd.read_csv(train_path)
-data_test = pd.read_csv(test_path)
 
 columns = (['id', 'dur', 'proto', 'service', 'state', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate', 'sttl', 'dttl', 'sload', 'dload', 'sloss', 'dloss', 'sinpkt', 'dinpkt', 'sjit', 'djit', 'swin', 'stcpb', 'dtcpb', 'dwin', 'tcprtt', 'synack', 'ackdat', 'smean', 'dmean', 'trans_depth', 'response_body_len', 'ct_srv_src', 'ct_state_ttl', 'ct_dst_ltm', 'ct_src_dport_ltm', 'ct_dst_sport_ltm', 'ct_dst_src_ltm', 'is_ftp_login', 'ct_ftp_cmd', 'ct_flw_http_mthd', 'ct_src_ltm', 'ct_srv_dst', 'is_sm_ips_ports', 'attack_cat', 'label'])
 
 data_train.columns = columns
-data_test.columns = columns
 
 print("Mapping outcomes...", flush=True)
 data_train.loc[data_train['label'] == "Normal", "label"] = 0
 data_train.loc[data_train['label'] != 0, "label"] = 1
-
-data_test.loc[data_test['label'] == "Normal", "label"] = 0
-data_test.loc[data_test['label'] != 0, "label"] = 1
 
 def Scaling(df_num, cols):
     std_scaler = RobustScaler()
@@ -58,16 +52,12 @@ def preprocess(dataframe):
 
 cat_cols = ['attack_cat', 'label']
 scaled_train = preprocess(data_train)
-scaled_test = preprocess(data_test)
 
-x_train = scaled_train.drop(['label'], axis=1).values
-y_train = scaled_train['label'].values
+x = scaled_train.drop(['label'] , axis = 1).values
+y = scaled_train['label'].values
 
-x_test = scaled_test.drop(['label'], axis=1).values
-y_test = scaled_test['label'].values
-
-y_train = y_train.astype('int')
-y_test = y_test.astype('int')
+y = y.astype('int')
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
 def objective(trial, model_name):
     if model_name == "lr":
