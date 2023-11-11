@@ -169,23 +169,28 @@ if (generate_statistics_pie):
     pie_plot(data_train, ['attack_cat', 'label'], 1, 2)
 
 cat_cols = ['attack_cat', 'label']
+# Process training set
 scaled_train = preprocess(data_train)
-scaled_test = preprocess(data_test)
-
 x_train = scaled_train.drop(['label'], axis=1).values
 y_train = scaled_train['label'].values
-
-x_test = scaled_test.drop(['label'], axis=1).values
-y_test = scaled_test['label'].values
-
 y_train = y_train.astype('int')
-y_test = y_test.astype('int')
 
 pca_train = PCA(n_components=20)
-pca_test = PCA(n_components=20)
 x_train_reduced = pca_train.fit_transform(x_train)
+y_train_reduced = y_train
+
+# Process testing set
+scaled_test = preprocess(data_test)
+x_test = scaled_test.drop(['label'], axis=1).values
+y_test = scaled_test['label'].values
+y_test = y_test.astype('int')
+
+pca_test = PCA(n_components=20)
 x_test_reduced = pca_test.fit_transform(x_test)
-y_train_reduced, y_test_reduced = train_test_split(x_train_reduced, y_train, test_size=0.2, random_state=42)
+y_test_reduced = y_test
+
+
+
 
 printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
 printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
