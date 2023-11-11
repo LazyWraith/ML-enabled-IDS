@@ -115,7 +115,7 @@ data_train.loc[data_train['label'] == "Normal", "label"] = 0
 data_train.loc[data_train['label'] != 0, "label"] = 1
 
 def pie_plot(df, cols_list, rows, cols):
-    print(f"[{get_ts()}] Generating results...", flush=True)
+    # print(f"[{get_ts()}] Generating results...", flush=True)
     fig, axes = plt.subplots(rows, cols)
     for ax, col in zip(axes.ravel(), cols_list):
         df[col].value_counts().plot(ax=ax, kind='pie', figsize=(15, 15), fontsize=10, autopct='%1.0f%%')
@@ -131,20 +131,48 @@ def Scaling(df_num, cols):
     std_df = pd.DataFrame(std_scaler_temp, columns=cols)
     return std_df
 
+# def preprocess(dataframe):
+#     df_num = dataframe.drop(cat_cols, axis=1)  # Drop 'attack_cat' and 'Label'
+#     num_cols = df_num.columns
+#     scaled_df = Scaling(df_num, num_cols)
+    
+#     dataframe.drop(labels=num_cols, axis="columns", inplace=True)
+#     dataframe[num_cols] = scaled_df[num_cols]
+    
+#     dataframe = pd.get_dummies(dataframe, columns=['proto', 'service', 'state'])
+#     return dataframe
+
 def preprocess(dataframe):
-    df_num = dataframe.drop(cat_cols, axis=1)  # Drop 'attack_cat' and 'Label'
-    num_cols = df_num.columns
-    scaled_df = Scaling(df_num, num_cols)
+    printlog(f"[{get_ts()}] Running preprocess...")
+    # Drop 'attack_cat' and 'label'
+    df_num = dataframe.drop(cat_cols, axis=1)  
     
-    dataframe.drop(labels=num_cols, axis="columns", inplace=True)
-    dataframe[num_cols] = scaled_df[num_cols]
-    
-    dataframe = pd.get_dummies(dataframe, columns=['proto', 'state', 'service'])
+    # Separate numerical and categorical columns
+    num_cols = df_num.select_dtypes(include=[np.number]).columns
+    obj_cols = ['proto', 'service', 'state']
+
+    # One-hot encode categorical columns
+    dataframe = pd.get_dummies(dataframe, columns=obj_cols)
+
+    # Separate numerical and label columns
+    df_num = dataframe[num_cols]
+    labels = dataframe['label']
+
+    # Apply RobustScaler to numerical columns
+    std_scaler = RobustScaler()
+    std_scaler_temp = std_scaler.fit_transform(df_num)
+    std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
+
+    # Combine scaled numerical columns and labels
+    dataframe = pd.concat([std_df, labels], axis=1)
+
     return dataframe
 
-pie_plot(data_train, ['proto', 'label'], 1, 2)
+cat_cols = ['attack_cat', 'label']
 
-cat_cols = ['attack_cat', 'Label']
+pie_plot(data_train, ['proto', 'service'], 1, 2)
+
+pie_plot(data_train, ['attack_cat', 'label'], 1, 2)
 
 scaled_train = preprocess(data_train)
 
@@ -206,7 +234,7 @@ evaluate_classification(gnb, "GaussianNB", x_train, x_test, y_train, y_test)
 lin_svc = svm.LinearSVC(**lin_svc_params).fit(x_train, y_train)
 evaluate_classification(lin_svc, "Linear SVC(LBasedImpl)", x_train, x_test, y_train, y_test)
 
-# dt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
+dt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
 tdt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
 evaluate_classification(tdt, "DecisionTreeClassifier", x_train, x_test, y_train, y_test)
 
