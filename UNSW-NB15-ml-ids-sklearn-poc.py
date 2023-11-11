@@ -58,8 +58,8 @@ gnb_params = {
 
 # LinearSVC
 lin_svc_params = {
-    "C": 1.0031805066310098e-05,
-    "max_iter": 711
+    "C": 1.0000346600564648e-05,
+    "max_iter": 709
 }
 
 # Decision Trees
@@ -78,11 +78,11 @@ xgb_params = {
 
 # RandomForestClassifier
 rf_params = {
-    "n_estimators": 26,
+    "n_estimators": 87,
     "max_depth": 4,
     "min_samples_split": 9,
     "min_samples_leaf": 9,
-    "max_features": 0.7856121223761253
+    "max_features": 0.793102879894246
 }
 
 ##############################
