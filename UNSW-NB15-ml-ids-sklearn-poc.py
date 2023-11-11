@@ -28,48 +28,48 @@ display_results = False
 
 # Logical Regression
 lr_params = {
-    "C": 0.9005185392957903, 
-    "max_iter": 610, 
+    "C": 4.970645224458411,
+    "max_iter": 998,
     "solver": "liblinear"
 }
 
 # K-Nearest Neighbors
 knn_params = {
-    "n_neighbors": 4
+    "n_neighbors": 3
 }
 
 # GaussianNB
 gnb_params = {
-    "var_smoothing": 1.0069598156081068e-12
+    "var_smoothing": 1.2142824485311176e-12
 }
 
 # LinearSVC
 lin_svc_params = {
-    "C": 23392.58827684601,
-    "max_iter": 756
+    "C": 0.036763506533393595,
+    "max_iter": 784
 }
 
 # Decision Trees
 dt_params = {
-    "max_depth": 11,
-    "min_samples_split": 10,
-    "min_samples_leaf": 2
+    "max_depth": 15,
+    "min_samples_split": 9,
+    "min_samples_leaf": 1
 }
 
 # XGBoost
 xgb_params = {
-    "n_estimators": 80,
-    "max_depth": 6,
-    "learning_rate": 0.001516776836910026
+    "n_estimators": 129,
+    "max_depth": 8,
+    "learning_rate": 0.09579543793645304
 }
 
 # RandomForestClassifier
 rf_params = {
-    "n_estimators": 100,
-    "max_depth": 11,
-	"min_samples_split": 10,
-	"min_samples_leaf": 7,
-	"max_features": 0.36880849847634534
+    "n_estimators": 53,
+    "max_depth": 15,
+    "min_samples_split": 2,
+    "min_samples_leaf": 2,
+    "max_features": 0.4414469827896669
 }
 
 ##############################
@@ -259,7 +259,7 @@ features_names = data_train.drop(['label'], axis=1)
 f_importances(abs(tdt.feature_importances_), features_names, top=18, title="Decision Tree")
 
 print(f"[{get_ts()}] Generating results...", flush=True)
-fig = plt.figure(figsize=(15, 12))
+fig = plt.figure(figsize=(45, 32))
 tree.plot_tree(dt, filled=True)
 counter = get_filename_counter()
 plt.savefig(os.path.join(output_dir, f"{counter}Decision_tree.png"))

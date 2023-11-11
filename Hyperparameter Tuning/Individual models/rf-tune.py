@@ -23,8 +23,8 @@ display_results = False
 ##############################
 
 # result output
-output_dir = "./UNSW-NB15-hypertune"
-train_path = "../input/UNSW_NB15/UNSW_NB15_training-set.csv"
+output_dir = "../UNSW-NB15-hypertune"
+train_path = "../../input/UNSW_NB15/UNSW_NB15_training-set.csv"
 
 # Read Train and Test dataset
 data_train = pd.read_csv(train_path)
@@ -47,21 +47,19 @@ def Scaling(df_num, cols):
     return std_df
 
 def preprocess(dataframe):
-    print("Running preprocess...", flush=True)
     df_num = dataframe.drop(cat_cols, axis=1)
-    num_cols = df_num.columns
-    scaled_df = Scaling(df_num, num_cols)
-
-    dataframe.drop(labels=num_cols, axis="columns", inplace=True)
-    dataframe[num_cols] = scaled_df[num_cols]
-
-    dataframe.loc[dataframe['label'] == "Normal", "label"] = 0
-    dataframe.loc[dataframe['label'] != 0, "label"] = 1
-
-    dataframe = pd.get_dummies(dataframe, columns=['proto', 'service', 'state', 'attack_cat'])
+    num_cols = df_num.select_dtypes(include=[np.number]).columns
+    obj_cols = ['proto', 'service', 'state']
+    dataframe = pd.get_dummies(dataframe, columns=obj_cols)
+    df_num = dataframe[num_cols]
+    labels = dataframe['label']
+    std_scaler = RobustScaler()
+    std_scaler_temp = std_scaler.fit_transform(df_num)
+    std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
+    dataframe = pd.concat([std_df, labels], axis=1)
     return dataframe
 
-cat_cols = ['proto', 'service', 'state', 'attack_cat']
+cat_cols = ['attack_cat', 'label']
 scaled_train = preprocess(data_train)
 
 x = scaled_train.drop(['label'] , axis = 1).values
