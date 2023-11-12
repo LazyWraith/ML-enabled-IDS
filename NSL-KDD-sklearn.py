@@ -25,10 +25,10 @@ warnings.filterwarnings('ignore')
 display_results = False
 generate_statistics_pie = True
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15"
-train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
-test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
-columns = (['id', 'dur', 'proto', 'service', 'state', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate', 'sttl', 'dttl', 'sload', 'dload', 'sloss', 'dloss', 'sinpkt', 'dinpkt', 'sjit', 'djit', 'swin', 'stcpb', 'dtcpb', 'dwin', 'tcprtt', 'synack', 'ackdat', 'smean', 'dmean', 'trans_depth', 'response_body_len', 'ct_srv_src', 'ct_state_ttl', 'ct_dst_ltm', 'ct_src_dport_ltm', 'ct_dst_sport_ltm', 'ct_dst_src_ltm', 'is_ftp_login', 'ct_ftp_cmd', 'ct_flw_http_mthd', 'ct_src_ltm', 'ct_srv_dst', 'is_sm_ips_ports', 'attack_cat', 'label'])
+output_dir = "./output/NSL-KDD-new"
+train_path = "./input/nsl-kdd/KDDTrain+.txt"
+test_path = "./input/nsl-kdd/KDDTest+.txt"
+columns = (['duration','protocol_type','service','flag','src_bytes','dst_bytes','land','wrong_fragment','urgent','hot','num_failed_logins','logged_in','num_compromised','root_shell','su_attempted','num_root','num_file_creations','num_shells','num_access_files','num_outbound_cmds','is_host_login','is_guest_login','count','srv_count','serror_rate','srv_serror_rate','rerror_rate','srv_rerror_rate','same_srv_rate','diff_srv_rate','srv_diff_host_rate','dst_host_count','dst_host_srv_count','dst_host_same_srv_rate','dst_host_diff_srv_rate','dst_host_same_src_port_rate','dst_host_srv_diff_host_rate','dst_host_serror_rate','dst_host_srv_serror_rate','dst_host_rerror_rate','dst_host_srv_rerror_rate','outcome','level'])
 # Models to evaluate
 bool_lr         = True
 bool_knn        = True
@@ -42,39 +42,41 @@ bool_rf         = True
 
 # Logical Regression
 lr_params = {
-    "C": 0.36585696635446396,
-    "max_iter": 868,
-    "solver": "lbfgs"
+    # "C": 0.36585696635446396,
+    # "max_iter": 868,
+    # "solver": "lbfgs"
 }
 
 # K-Nearest Neighbors
 knn_params = {
-    "n_neighbors": 21
+    "n_neighbors": 20
 }
 
 # GaussianNB
 gnb_params = {
-    "var_smoothing": 9.437310900762216e-08
+    # "var_smoothing": 9.437310900762216e-08
 }
 
 # LinearSVC
 lin_svc_params = {
-    "C": 1.0000346600564648e-05,
-    "max_iter": 709
+    # "C": 1.0000346600564648e-05,
+    # "max_iter": 709
 }
 
 # Decision Trees
 dt_params = {
-    "max_depth": 10,
-    "min_samples_split": 13,
-    "min_samples_leaf": 3
+    # "max_depth": 10,
+    # "min_samples_split": 13,
+    # "min_samples_leaf": 3
 }
 
 # XGBoost
 xgb_params = {
-    "n_estimators": 80,
-    "max_depth": 3,
-    "learning_rate": 0.001182925709827524
+    # "n_estimators": 80,
+    # "max_depth": 3,
+    # "learning_rate": 0.001182925709827524
+    "objective":'reg:linear',
+    "n_estimators": 20
 }
 
 # RandomForestClassifier
@@ -124,11 +126,11 @@ data_train.info()
 data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
 
 printlog(f"[{get_ts()}] Mapping outcomes...")
-data_train.loc[data_train['label'] == "Normal", "label"] = 0
-data_train.loc[data_train['label'] != 0, "label"] = 1
+data_train.loc[data_train['outcome'] == "normal", "outcome"] = 0
+data_train.loc[data_train['outcome'] != 0, "outcome"] = 1
 
-data_test.loc[data_test['label'] == "Normal", "label"] = 0
-data_test.loc[data_test['label'] != 0, "label"] = 1
+data_test.loc[data_test['outcome'] == "normal", "outcome"] = 0
+data_test.loc[data_test['outcome'] != 0, "outcome"] = 1
 
 def pie_plot(df, cols_list, rows, cols):
     fig, axes = plt.subplots(rows, cols)
@@ -141,13 +143,12 @@ def pie_plot(df, cols_list, rows, cols):
     if (display_results): plt.show()
 
 def preprocess(dataframe):
-    dataframe = dataframe.drop(['id'], axis=1)
     df_num = dataframe.drop(cat_cols, axis=1)
     num_cols = df_num.select_dtypes(include=[np.number]).columns
-    obj_cols = ['proto', 'service', 'state']
+    obj_cols = ['protocol_type', 'service', 'flag']
     dataframe = pd.get_dummies(dataframe, columns=obj_cols)
     df_num = dataframe[num_cols]
-    labels = dataframe['label']
+    labels = dataframe['outcome']
     std_scaler = RobustScaler()
     std_scaler_temp = std_scaler.fit_transform(df_num)
     std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
@@ -155,14 +156,15 @@ def preprocess(dataframe):
     return dataframe
 
 if (generate_statistics_pie):
-    pie_plot(data_train, ['proto', 'service'], 1, 2)
-    pie_plot(data_train, ['attack_cat', 'label'], 1, 2)
+    pie_plot(data_train, ['protocol_type', 'flag'], 1, 2)
+    pie_plot(data_train, ['service', 'outcome'], 1, 2)
 
-cat_cols = ['attack_cat', 'label']
+cat_cols = ['is_host_login','protocol_type','service','flag','land', 'logged_in','is_guest_login', 'level', 'outcome']
 # Process training set
 scaled_train = preprocess(data_train)
-x_train = scaled_train.drop(['label'], axis=1).values
-y_train = scaled_train['label'].values
+print(scaled_train['outcome'].unique())
+x_train = scaled_train.drop(['outcome'], axis=1).values
+y_train = scaled_train['outcome'].values
 y_train = y_train.astype('int')
 
 pca_train = PCA(n_components=20)
@@ -171,8 +173,8 @@ y_train_reduced = y_train
 
 # Process testing set
 scaled_test = preprocess(data_test)
-x_test = scaled_test.drop(['label'], axis=1).values
-y_test = scaled_test['label'].values
+x_test = scaled_test.drop(['outcome'], axis=1).values
+y_test = scaled_test['outcome'].values
 y_test = y_test.astype('int')
 
 pca_test = PCA(n_components=20)
@@ -180,6 +182,7 @@ x_test_reduced = pca_test.fit_transform(x_test)
 y_test_reduced = y_test
 
 printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
+printlog(f"[{get_ts()}] Training label set: {y_train.shape[0]}, Testing label set: {y_test.shape[0]}")
 printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
 
 kernal_evals = dict()
@@ -277,7 +280,7 @@ if (bool_dt):
     printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(tdt, "DecisionTreeClassifier", x_train, x_test, y_train, y_test)
 
-    features_names = data_train.drop(['label'], axis=1)
+    features_names = data_train.drop(['outcome'], axis=1)
     f_importances(abs(tdt.feature_importances_), features_names, top=18, title="Decision Tree")
 
     print(f"[{get_ts()}] Generating results...", flush=True)
@@ -294,7 +297,7 @@ if (bool_rf):
     end_time = time.time()
     printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(rf, "RandomForestClassifier", x_train, x_test, y_train, y_test)
-    features_names = data_train.drop(['label'], axis=1)
+    features_names = data_train.drop(['outcome'], axis=1)
     f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
 
     printlog(f"[{get_ts()}] Preparing Reduced RandomForest")
