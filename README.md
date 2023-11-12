@@ -1,8 +1,10 @@
 # Intrusion Detection System with ML
-This repository contains the code for the project "Development and Implementation of Machine Learning-Based Anomaly Detection System". This repository proposes a Python implementation of an Intrusion Detection System (IDS) using machine learning models. The system is designed to identify and classify network intrusions or attacks, providing a robust defense against potential security threats. This project modifies the work from Essam Mohamed to train models using UNSW-NB15. 
+This repository contains the code for the project "Development and Implementation of Machine Learning-Based Anomaly Detection System". This repository proposes a Python implementation of an Intrusion Detection System (IDS) using machine learning models. The system is designed to identify and classify network intrusions or attacks, providing a robust defense against potential security threats. This project modifies the work from Essam Mohamed to train models using UNSW-NB15 instead.
+
+This project makes use of several popular machine learning models, including Logistic regression, K-nearest neighbours, Gaussian Naive Bayes, Linear SVC, Decision trees, XGBoost, and Random forest. Hyperparameter tuning is done via Optuna for each models. Feature extraction is done using PCA, which reduces the dataset features to 20. Currently, feature extraction is only done on XGBoost and Random forest.
 
 # Prerequisites
-Some things need to be done before you can run the program.
+Some things need to be done before you can run the program:
 
 ## Python
 This project is built on Python 3.10. For the dependencies, please see `requirements.txt`.
