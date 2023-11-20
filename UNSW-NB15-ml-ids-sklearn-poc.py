@@ -23,24 +23,25 @@ warnings.filterwarnings('ignore')
 
 ###--------SETTINGS--------###
 display_results = False
-generate_statistics_pie = True
+generate_statistics_pie = False
 dataset_name = "UNSW-NB15"
 output_dir = "./output/UNSW-NB15"
 train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
 test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
 columns = (['id', 'dur', 'proto', 'service', 'state', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate', 'sttl', 'dttl', 'sload', 'dload', 'sloss', 'dloss', 'sinpkt', 'dinpkt', 'sjit', 'djit', 'swin', 'stcpb', 'dtcpb', 'dwin', 'tcprtt', 'synack', 'ackdat', 'smean', 'dmean', 'trans_depth', 'response_body_len', 'ct_srv_src', 'ct_state_ttl', 'ct_dst_ltm', 'ct_src_dport_ltm', 'ct_dst_sport_ltm', 'ct_dst_src_ltm', 'is_ftp_login', 'ct_ftp_cmd', 'ct_flw_http_mthd', 'ct_src_ltm', 'ct_srv_dst', 'is_sm_ips_ports', 'attack_cat', 'label'])
 # Models to evaluate
-bool_lr         = True
-bool_knn        = True
-bool_gnb        = True
-bool_lin_svc    = True
-bool_dt         = True
-bool_xgb        = True
-bool_rf         = True
+bool_lr         = False
+bool_knn        = False
+bool_gnb        = False
+bool_lin_svc    = False
+bool_dt         = False
+bool_xgb        = False
+bool_rf         = False
+bool_dnn        = True
 
 ###----ML-PARAMETERS-------###
 
-# Logical Regression
+# Logistic Regression
 lr_params = {
     "C": 0.36585696635446396,
     "max_iter": 868,
@@ -57,7 +58,7 @@ gnb_params = {
     "var_smoothing": 9.437310900762216e-08
 }
 
-# LinearSVC
+# LinearSVC Support Vector Classification
 lin_svc_params = {
     "C": 1.0000346600564648e-05,
     "max_iter": 709
@@ -85,7 +86,7 @@ rf_params = {
     "min_samples_leaf": 9,
     "max_features": 0.793102879894246
 }
-
+# to add: DNN
 ##############################
 
 Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -304,7 +305,7 @@ if (bool_rf):
     printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(rrf, "Reduced RandomForest", x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced)
 
-if (bool_lr): 
+if (bool_xgb): 
     printlog(f"[{get_ts()}] Preparing XGBoost")
     start_time = time.time()
     xg_r = xgb.XGBRegressor(**xgb_params).fit(x_train_reduced, y_train_reduced)
@@ -321,6 +322,32 @@ if (bool_lr):
     plt.plot(df[:80])
     plt.legend(['Actual', 'Predicted'])
     # if (display_results): plt.show()
+
+if (bool_dnn):
+    printlog(f"[{get_ts()}] Preparing DNN")
+    start_time = time.time()
+    dnn = tf.keras.Sequential()
+    dnn.add(tf.keras.layers.Dense(128, activation='relu', input_shape=(x_train.shape[1],)))
+    dnn.add(tf.keras.layers.Dense(64, activation='relu'))
+    dnn.add(tf.keras.layers.Dense(1, activation='relu'))
+    dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
+    results = dnn.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test))
+    end_time = time.time()
+    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    # evaluate_classification(dnn, "DNN", x_train, x_test, y_train, y_test)
+    loss, accuracy = dnn.evaluate(x_test, y_test)
+    printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
+    plt.plot(results.history['accuracy'], label='Training Accuracy')
+    plt.plot(results.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Model Training History')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(loc='lower right')
+    counter = get_filename_counter()
+    plt.savefig(os.path.join(output_dir, f"{counter}Deep Neural Network.png"))
+    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Deep Neural Network.png", flush=True)
+    if(display_results): plt.show()
+
 
 log.close()
 print(f"[{get_ts()}] End of program")
