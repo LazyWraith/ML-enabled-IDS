@@ -25,10 +25,18 @@ warnings.filterwarnings('ignore')
 display_results = False
 generate_statistics_pie = False
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15"
+output_dir = "./output/UNSW-NB15_DNN"
 train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
 test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
 columns = (['id', 'dur', 'proto', 'service', 'state', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate', 'sttl', 'dttl', 'sload', 'dload', 'sloss', 'dloss', 'sinpkt', 'dinpkt', 'sjit', 'djit', 'swin', 'stcpb', 'dtcpb', 'dwin', 'tcprtt', 'synack', 'ackdat', 'smean', 'dmean', 'trans_depth', 'response_body_len', 'ct_srv_src', 'ct_state_ttl', 'ct_dst_ltm', 'ct_src_dport_ltm', 'ct_dst_sport_ltm', 'ct_dst_src_ltm', 'is_ftp_login', 'ct_ftp_cmd', 'ct_flw_http_mthd', 'ct_src_ltm', 'ct_srv_dst', 'is_sm_ips_ports', 'attack_cat', 'label'])
+
+# Preprocessing Settings
+
+use_single_dataset = False # Use a single dataset ans splits it into test and train sets
+split_train_ratio = 0.6 # Train size
+split_test_ratio = 1 - split_train_ratio
+rndm_state = 42
+
 # Models to evaluate
 bool_lr         = False
 bool_knn        = False
@@ -160,28 +168,47 @@ if (generate_statistics_pie):
     pie_plot(data_train, ['attack_cat', 'label'], 1, 2)
 
 cat_cols = ['attack_cat', 'label']
-# Process training set
-scaled_train = preprocess(data_train)
-x_train = scaled_train.drop(['label'], axis=1).values
-y_train = scaled_train['label'].values
-y_train = y_train.astype('int')
 
-pca_train = PCA(n_components=20)
-x_train_reduced = pca_train.fit_transform(x_train)
-y_train_reduced = y_train
+# Process and split dataset
 
-# Process testing set
-scaled_test = preprocess(data_test)
-x_test = scaled_test.drop(['label'], axis=1).values
-y_test = scaled_test['label'].values
-y_test = y_test.astype('int')
+if (use_single_dataset): 
+    scaled_train = preprocess(data_train)
 
-pca_test = PCA(n_components=20)
-x_test_reduced = pca_test.fit_transform(x_test)
-y_test_reduced = y_test
+    x = scaled_train.drop(['label'] , axis = 1).values
+    y = scaled_train['label'].values
 
-printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
-printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
+    pca = PCA(n_components=20)
+    pca = pca.fit(x)
+    x_reduced = pca.transform(x)
+    printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
+
+    y = y.astype('int')
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
+    x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
+
+else:
+    # Process training set
+    scaled_train = preprocess(data_train)
+    x_train = scaled_train.drop(['label'], axis=1).values
+    y_train = scaled_train['label'].values
+    y_train = y_train.astype('int')
+
+    pca_train = PCA(n_components=20)
+    x_train_reduced = pca_train.fit_transform(x_train)
+    y_train_reduced = y_train
+
+    # Process testing set
+    scaled_test = preprocess(data_test)
+    x_test = scaled_test.drop(['label'], axis=1).values
+    y_test = scaled_test['label'].values
+    y_test = y_test.astype('int')
+
+    pca_test = PCA(n_components=20)
+    x_test_reduced = pca_test.fit_transform(x_test)
+    y_test_reduced = y_test
+
+    printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
+    printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
 
 kernal_evals = dict()
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
@@ -324,14 +351,17 @@ if (bool_xgb):
     # if (display_results): plt.show()
 
 if (bool_dnn):
+    name = "DNN"
     printlog(f"[{get_ts()}] Preparing DNN")
     start_time = time.time()
     dnn = tf.keras.Sequential()
     dnn.add(tf.keras.layers.Dense(128, activation='relu', input_shape=(x_train.shape[1],)))
+    dnn.add(tf.keras.layers.Dropout(0.2))
     dnn.add(tf.keras.layers.Dense(64, activation='relu'))
+    dnn.add(tf.keras.layers.Dropout(0.2))
     dnn.add(tf.keras.layers.Dense(1, activation='relu'))
     dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
-    results = dnn.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test))
+    results = dnn.fit(x_train, y_train, epochs=50, batch_size=32, validation_data=(x_test, y_test))
     end_time = time.time()
     printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     # evaluate_classification(dnn, "DNN", x_train, x_test, y_train, y_test)
@@ -347,6 +377,19 @@ if (bool_dnn):
     plt.savefig(os.path.join(output_dir, f"{counter}Deep Neural Network.png"))
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Deep Neural Network.png", flush=True)
     if(display_results): plt.show()
+
+    actual = y_test
+    # predicted = dnn.predict(x_test)
+    predicted = (dnn.predict(x_test) > 0.5).astype("int32")
+    confusion_matrix = metrics.confusion_matrix(actual, predicted)
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=['Normal', 'Attack'])
+    
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.grid(False)
+    cm_display.plot(ax=ax)
+    counter = get_filename_counter()
+    plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
+    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
 
 
 log.close()

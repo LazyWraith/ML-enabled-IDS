@@ -1,8 +1,7 @@
 [000.0000] Init complete!
-[000.0010] Reading from ./input/UNSW_NB15/UNSW_NB15_training-set.csv
-[001.4100] Mapping outcomes...
-[003.9658] Training set original features: 39, reduced features: 20
-[003.9658] Testing set original features: 39, reduced features: 20
-[003.9658] Preparing DNN
-[250.6587] Training time: 246.6919
-Test Loss: 3.5801, Test Accuracy: 0.7546
+[000.0000] Reading from ./input/UNSW_NB15/UNSW_NB15_training-set.csv
+[000.8568] Mapping outcomes...
+[001.4610] Number of original features is 39 and of reduced features is 20
+[001.4940] Preparing DNN
+[023.6002] Training time: 22.1052
+Test Loss: 1.2252, Test Accuracy: 0.8420
