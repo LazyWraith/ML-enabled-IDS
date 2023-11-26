@@ -28,8 +28,8 @@ generate_statistics_pie = True
 # UNSW-NB15
 # NSL-KDD
 # CICIDS2017
-dataset_name = "CICIDS2017"
-output_dir = "./output/CICIDS2017"
+dataset_name = "UNSW-NB15"
+output_dir = "./output/UNSW-NB15-both"
 
 # Models to evaluate
 bool_lr         = True
