@@ -24,18 +24,13 @@ warnings.filterwarnings('ignore')
 ###--------SETTINGS--------###
 display_results = False
 generate_statistics_pie = False
-dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15_DNN"
-train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
-test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
-columns = (['id', 'dur', 'proto', 'service', 'state', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate', 'sttl', 'dttl', 'sload', 'dload', 'sloss', 'dloss', 'sinpkt', 'dinpkt', 'sjit', 'djit', 'swin', 'stcpb', 'dtcpb', 'dwin', 'tcprtt', 'synack', 'ackdat', 'smean', 'dmean', 'trans_depth', 'response_body_len', 'ct_srv_src', 'ct_state_ttl', 'ct_dst_ltm', 'ct_src_dport_ltm', 'ct_dst_sport_ltm', 'ct_dst_src_ltm', 'is_ftp_login', 'ct_ftp_cmd', 'ct_flw_http_mthd', 'ct_src_ltm', 'ct_srv_dst', 'is_sm_ips_ports', 'attack_cat', 'label'])
-
-# Preprocessing Settings
-
-use_single_dataset = False # Use a single dataset ans splits it into test and train sets
-split_train_ratio = 0.6 # Train size
-split_test_ratio = 1 - split_train_ratio
-rndm_state = 42
+read_headers_from_csv = True
+# Available options:
+# UNSW-NB15
+# NSL-KDD
+# CICIDS2017
+dataset_name = "CICIDS2017"
+output_dir = "./output/CICIDS2017_test"
 
 # Models to evaluate
 bool_lr         = False
@@ -46,6 +41,72 @@ bool_dt         = False
 bool_xgb        = False
 bool_rf         = False
 bool_dnn        = True
+
+# Per dataset settings
+
+if dataset_name == "UNSW-NB15":
+    # Dataset Path
+    train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
+    test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
+    # Preprocessing Settings
+    use_single_dataset = False # Use a single dataset ans splits it into test and train sets
+    split_train_ratio = 0.6 # Train size
+    split_test_ratio = 1 - split_train_ratio
+    rndm_state = 42
+    # Dataset Headers
+    read_cols_from_csv = True
+    cat_cols = ['attack_cat', 'label']
+    obj_cols = ['proto', 'service', 'state']
+    drop_cols = ['id']
+    label_name_map = 'label'
+    label_value_map = 'Normal'
+    pie_stats = [
+        ['proto', 'service'], 
+        ['attack_cat', 'label']
+                 ]
+elif dataset_name == "NSL-KDD":
+    # Dataset Path
+    train_path = "./input/nsl-kdd/KDDTrain+.txt"
+    test_path = "./input/nsl-kdd/KDDTest+.txt"
+    # Preprocessing Settings
+    use_single_dataset = False # Use a single dataset ans splits it into test and train sets
+    split_train_ratio = 0.6 # Train size
+    split_test_ratio = 1 - split_train_ratio
+    rndm_state = 42
+    # Dataset Headers
+    read_cols_from_csv = False
+    columns = (['duration','protocol_type','service','flag','src_bytes','dst_bytes','land','wrong_fragment','urgent','hot','num_failed_logins','logged_in','num_compromised','root_shell','su_attempted','num_root','num_file_creations','num_shells','num_access_files','num_outbound_cmds','is_host_login','is_guest_login','count','srv_count','serror_rate','srv_serror_rate','rerror_rate','srv_rerror_rate','same_srv_rate','diff_srv_rate','srv_diff_host_rate','dst_host_count','dst_host_srv_count','dst_host_same_srv_rate','dst_host_diff_srv_rate','dst_host_same_src_port_rate','dst_host_srv_diff_host_rate','dst_host_serror_rate','dst_host_srv_serror_rate','dst_host_rerror_rate','dst_host_srv_rerror_rate','outcome','level'])
+    cat_cols = ['attack_cat', 'label']
+    drop_cols = ['']
+    obj_cols = ['protocol_type', 'service', 'flag']
+    label_name_map = 'outcome'
+    label_value_map = 'normal'
+    pie_stats = [
+        ['protocol_type', 'flag'], 
+        ['service', 'outcome']
+                 ]
+elif dataset_name =="CICIDS2017":
+    # Dataset Path
+    train_path = "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv"
+    test_path = "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv"
+    # Preprocessing Settings
+    use_single_dataset = True # Use a single dataset ans splits it into test and train sets
+    split_train_ratio = 0.6 # Train size
+    split_test_ratio = 1 - split_train_ratio
+    rndm_state = 42
+    # Dataset Headers
+    read_cols_from_csv = True
+    cat_cols = ['Label']
+    drop_cols = ['Flow Bytes/s', 'Flow Packets/s', 'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'Idle Mean', 'Idle Std', 'Idle Max', 'Idle Min', 'Fwd Header Length', 'Bwd Header Length']
+    obj_cols = ['FIN Flag Count', 'SYN Flag Count', 'RST Flag Count', 'PSH Flag Count', 'ACK Flag Count', 'URG Flag Count', 'CWE Flag Count', 'ECE Flag Count']
+    label_name_map = 'Label'
+    label_value_map = 'BENIGN'
+    pie_stats = [
+        ['protocol_type', 'flag'], 
+        ['service', 'outcome']
+                 ]
+else:
+    print("Invalid dataset name!")
 
 ###----ML-PARAMETERS-------###
 
@@ -124,7 +185,10 @@ printlog(f"[{get_ts()}] Reading from {train_path}")
 # Read Train and Test dataset
 data_train = pd.read_csv(train_path)
 data_test = pd.read_csv(test_path)
-data_train.head()
+if (read_cols_from_csv): 
+    # columns = data_train.columns.tolist()
+    # Removes white spaces
+    columns = pd.read_csv(train_path).columns.str.strip().tolist()
 
 # Assign names for columns
 data_train.columns = columns
@@ -133,11 +197,6 @@ data_train.info()
 data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
 
 printlog(f"[{get_ts()}] Mapping outcomes...")
-data_train.loc[data_train['label'] == "Normal", "label"] = 0
-data_train.loc[data_train['label'] != 0, "label"] = 1
-
-data_test.loc[data_test['label'] == "Normal", "label"] = 0
-data_test.loc[data_test['label'] != 0, "label"] = 1
 
 def pie_plot(df, cols_list, rows, cols):
     fig, axes = plt.subplots(rows, cols)
@@ -149,14 +208,13 @@ def pie_plot(df, cols_list, rows, cols):
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{col}_pie_chart.png", flush=True)
     if (display_results): plt.show()
 
-def preprocess(dataframe):
-    dataframe = dataframe.drop(['id'], axis=1)
+def preprocess(dataframe, obj_cols_ = obj_cols):
+    dataframe = dataframe.drop(drop_cols, axis=1)
+    dataframe = pd.get_dummies(dataframe, columns=obj_cols_)
     df_num = dataframe.drop(cat_cols, axis=1)
     num_cols = df_num.select_dtypes(include=[np.number]).columns
-    obj_cols = ['proto', 'service', 'state']
-    dataframe = pd.get_dummies(dataframe, columns=obj_cols)
     df_num = dataframe[num_cols]
-    labels = dataframe['label']
+    labels = dataframe[label_name_map]
     std_scaler = RobustScaler()
     std_scaler_temp = std_scaler.fit_transform(df_num)
     std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
@@ -164,18 +222,19 @@ def preprocess(dataframe):
     return dataframe
 
 if (generate_statistics_pie):
-    pie_plot(data_train, ['proto', 'service'], 1, 2)
-    pie_plot(data_train, ['attack_cat', 'label'], 1, 2)
-
-cat_cols = ['attack_cat', 'label']
+    for i in pie_stats:
+        pie_plot(data_train, i, 1, 2)
 
 # Process and split dataset
 
 if (use_single_dataset): 
+    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
+    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
+    
     scaled_train = preprocess(data_train)
 
-    x = scaled_train.drop(['label'] , axis = 1).values
-    y = scaled_train['label'].values
+    x = scaled_train.drop(cat_cols , axis = 1).values
+    y = scaled_train[cat_cols].values
 
     pca = PCA(n_components=20)
     pca = pca.fit(x)
@@ -187,10 +246,16 @@ if (use_single_dataset):
     x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
 
 else:
+    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
+    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
+
+    data_test.loc[data_test[label_name_map] == label_value_map, label_name_map] = 0
+    data_test.loc[data_test[label_name_map] != 0, label_name_map] = 1
     # Process training set
+    
     scaled_train = preprocess(data_train)
-    x_train = scaled_train.drop(['label'], axis=1).values
-    y_train = scaled_train['label'].values
+    x_train = scaled_train.drop(cat_cols, axis=1).values
+    y_train = scaled_train[cat_cols].values
     y_train = y_train.astype('int')
 
     pca_train = PCA(n_components=20)
@@ -199,8 +264,8 @@ else:
 
     # Process testing set
     scaled_test = preprocess(data_test)
-    x_test = scaled_test.drop(['label'], axis=1).values
-    y_test = scaled_test['label'].values
+    x_test = scaled_test.drop(cat_cols, axis=1).values
+    y_test = scaled_test[cat_cols].values
     y_test = y_test.astype('int')
 
     pca_test = PCA(n_components=20)
