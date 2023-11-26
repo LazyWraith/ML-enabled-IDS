@@ -29,16 +29,16 @@ generate_statistics_pie = True
 # NSL-KDD
 # CICIDS2017
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15-both"
+output_dir = "./output/UNSW-NB15-new-DNN"
 
 # Models to evaluate
-bool_lr         = True
-bool_knn        = True
-bool_gnb        = True
-bool_lin_svc    = True
-bool_dt         = True
-bool_xgb        = True
-bool_rf         = True
+bool_lr         = False
+bool_knn        = False
+bool_gnb        = False
+bool_lin_svc    = False
+bool_dt         = False
+bool_xgb        = False
+bool_rf         = False
 bool_dnn        = True
 
 # Per dataset settings
@@ -48,7 +48,7 @@ if dataset_name == "UNSW-NB15":
     train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
     test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
     # Preprocessing Settings
-    use_single_dataset = False # Use a single dataset ans splits it into test and train sets
+    use_single_dataset = True # Use a single dataset ans splits it into test and train sets
     split_train_ratio = 0.6 # Train size
     split_test_ratio = 1 - split_train_ratio
     rndm_state = 42
@@ -207,6 +207,7 @@ def pie_plot(df, cols_list, rows, cols):
     plt.savefig(os.path.join(output_dir, f"{counter}{col}_pie_chart.png"))  # Save the chart
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{col}_pie_chart.png", flush=True)
     if (display_results): plt.show()
+    plt.clf()
 
 def preprocess(dataframe, obj_cols_ = obj_cols):
     dataframe = dataframe.drop(drop_cols, axis=1)
@@ -311,6 +312,7 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     counter = get_filename_counter()
     plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
+    plt.clf()
 
 def f_importances(coef, names, top=-1, title="untitled"):
     imp = coef
@@ -328,6 +330,7 @@ def f_importances(coef, names, top=-1, title="untitled"):
     plt.savefig(os.path.join(output_dir, f"{counter}Feature importances for {title}.png"))
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Feature importances for {title}.png", flush=True)
     if (display_results): plt.show()
+    plt.clf()
 
 if (bool_lr): 
     printlog(f"[{get_ts()}] Preparing Logistic Regression")
@@ -379,6 +382,7 @@ if (bool_dt):
     counter = get_filename_counter()
     plt.savefig(os.path.join(output_dir, f"{counter}Decision_tree.png"))
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Decision_tree.png", flush=True)
+    plt.clf()
 
 if (bool_rf): 
     printlog(f"[{get_ts()}] Preparing RandomForest")
@@ -414,6 +418,7 @@ if (bool_xgb):
     plt.plot(df[:80])
     plt.legend(['Actual', 'Predicted'])
     # if (display_results): plt.show()
+    plt.clf()
 
 if (bool_dnn):
     name = "DNN"
@@ -442,6 +447,7 @@ if (bool_dnn):
     plt.savefig(os.path.join(output_dir, f"{counter}Deep Neural Network.png"))
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Deep Neural Network.png", flush=True)
     if(display_results): plt.show()
+    plt.clf()
 
     actual = y_test
     # predicted = dnn.predict(x_test)
@@ -455,6 +461,7 @@ if (bool_dnn):
     counter = get_filename_counter()
     plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
+    plt.clf()
 
 
 log.close()
