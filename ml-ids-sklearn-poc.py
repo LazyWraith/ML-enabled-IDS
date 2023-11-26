@@ -29,16 +29,16 @@ generate_statistics_pie = True
 # NSL-KDD
 # CICIDS2017
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15-new-DNN"
+output_dir = "./output/UNSW-NB15-both"
 
 # Models to evaluate
-bool_lr         = False
-bool_knn        = False
-bool_gnb        = False
-bool_lin_svc    = False
-bool_dt         = False
-bool_xgb        = False
-bool_rf         = False
+bool_lr         = True
+bool_knn        = True
+bool_gnb        = True
+bool_lin_svc    = True
+bool_dt         = True
+bool_xgb        = True
+bool_rf         = True
 bool_dnn        = True
 
 # Per dataset settings
@@ -48,7 +48,7 @@ if dataset_name == "UNSW-NB15":
     train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
     test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
     # Preprocessing Settings
-    use_single_dataset = True # Use a single dataset ans splits it into test and train sets
+    use_single_dataset = False # Use a single dataset and splits it into test and train sets
     split_train_ratio = 0.6 # Train size
     split_test_ratio = 1 - split_train_ratio
     rndm_state = 42
@@ -68,7 +68,7 @@ elif dataset_name == "NSL-KDD":
     train_path = "./input/nsl-kdd/KDDTrain+.txt"
     test_path = "./input/nsl-kdd/KDDTest+.txt"
     # Preprocessing Settings
-    use_single_dataset = True # Use a single dataset ans splits it into test and train sets
+    use_single_dataset = True # Use a single dataset and splits it into test and train sets
     split_train_ratio = 0.6 # Train size
     split_test_ratio = 1 - split_train_ratio
     rndm_state = 42
@@ -89,7 +89,7 @@ elif dataset_name =="CICIDS2017":
     train_path = "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv"
     test_path = "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv"
     # Preprocessing Settings
-    use_single_dataset = True # Use a single dataset ans splits it into test and train sets
+    use_single_dataset = True # Use a single dataset and splits it into test and train sets
     split_train_ratio = 0.6 # Train size
     split_test_ratio = 1 - split_train_ratio
     rndm_state = 42
