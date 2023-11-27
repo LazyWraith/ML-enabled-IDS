@@ -18,6 +18,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn import metrics
+import pickle
 pd.set_option('display.max_columns', None)
 warnings.filterwarnings('ignore')
 
@@ -29,7 +30,11 @@ generate_statistics_pie = True
 # NSL-KDD
 # CICIDS2017
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15-both"
+output_dir = "./output/UNSW-NB15-save"
+load_saved_models = False
+save_trained_models =  True
+model_save_path = "./Saved models"
+model_save_version = "Single v0.0"
 
 # Models to evaluate
 bool_lr         = True
@@ -48,7 +53,7 @@ if dataset_name == "UNSW-NB15":
     train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
     test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
     # Preprocessing Settings
-    use_single_dataset = False # Use a single dataset and splits it into test and train sets
+    use_single_dataset = True # Use a single dataset and splits it into test and train sets
     split_train_ratio = 0.6 # Train size
     split_test_ratio = 1 - split_train_ratio
     rndm_state = 42
@@ -198,6 +203,21 @@ data_test.info()
 
 printlog(f"[{get_ts()}] Mapping outcomes...")
 
+def save_model(model, name):
+    Path(model_save_path).mkdir(parents=True, exist_ok=True)
+    filename = os.path.join(model_save_path, f"{model_save_version} {name} - {dataset_name}.pkl")
+    printlog(f"[{get_ts()}] Saving model to {filename}")
+    with open(filename, 'wb') as f:
+        pickle.dump(model, f)
+
+def load_model(name):
+    Path(model_save_path).mkdir(parents=True, exist_ok=True)
+    filename = os.path.join(model_save_path, f"{model_save_version} {name} - {dataset_name}.pkl")
+    printlog(f"[{get_ts()}] Loading model from {filename}")
+    with open(filename, 'rb') as f:
+        model = pickle.load(f)
+    return model
+
 def pie_plot(df, cols_list, rows, cols):
     fig, axes = plt.subplots(rows, cols)
     for ax, col in zip(axes.ravel(), cols_list):
@@ -333,46 +353,64 @@ def f_importances(coef, names, top=-1, title="untitled"):
     plt.clf()
 
 if (bool_lr): 
-    printlog(f"[{get_ts()}] Preparing Logistic Regression")
-    start_time = time.time()
-    lr = LogisticRegression(**lr_params).fit(x_train, y_train)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if load_saved_models:
+        lr = load_model("Logistic Regression")
+    else:
+        printlog(f"[{get_ts()}] Preparing Logistic Regression")
+        start_time = time.time()
+        lr = LogisticRegression(**lr_params).fit(x_train, y_train)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(lr, "Logistic Regression", x_train, x_test, y_train, y_test)
+    if save_trained_models: save_model(lr, "Logistic Regression")
 
 if (bool_knn): 
-    printlog(f"[{get_ts()}] Preparing KNeighborsClassifier")
-    start_time = time.time()
-    knn = KNeighborsClassifier(**knn_params).fit(x_train, y_train)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if load_saved_models:
+        knn = load_model("KNeighborsClassifier")
+    else:
+        printlog(f"[{get_ts()}] Preparing KNeighborsClassifier")
+        start_time = time.time()
+        knn = KNeighborsClassifier(**knn_params).fit(x_train, y_train)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(knn, "KNeighborsClassifier", x_train, x_test, y_train, y_test)
+    if save_trained_models: save_model(knn, "KNeighborsClassifier")
 
 if (bool_gnb): 
-    printlog(f"[{get_ts()}] Preparing GaussianNB")
-    start_time = time.time()
-    gnb = GaussianNB(**gnb_params).fit(x_train, y_train)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if load_saved_models:
+        gnb = load_model("GaussianNB")
+    else:
+        printlog(f"[{get_ts()}] Preparing GaussianNB")
+        start_time = time.time()
+        gnb = GaussianNB(**gnb_params).fit(x_train, y_train)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(gnb, "GaussianNB", x_train, x_test, y_train, y_test)
+    if save_trained_models: save_model(gnb, "GaussianNB")
 
 if (bool_lin_svc): 
-    printlog(f"[{get_ts()}] Preparing Linear SVC(LBasedImpl)")
-    start_time = time.time()
-    lin_svc = svm.LinearSVC(**lin_svc_params).fit(x_train, y_train)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if load_saved_models:
+        lin_svc = load_model("LinearSVC(LBasedImpl)")
+    else:
+        printlog(f"[{get_ts()}] Preparing Linear SVC(LBasedImpl)")
+        start_time = time.time()
+        lin_svc = svm.LinearSVC(**lin_svc_params).fit(x_train, y_train)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(lin_svc, "Linear SVC(LBasedImpl)", x_train, x_test, y_train, y_test)
-
+    if save_trained_models: save_model(lin_svc, "Linear SVC(LBasedImpl)")
 if (bool_dt): 
-    printlog(f"[{get_ts()}] Preparing Decision Tree")
-    start_time = time.time()
-    dt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
-    tdt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if load_saved_models:
+        dt = load_model("DecisionTreeClassifier")
+    else:
+        printlog(f"[{get_ts()}] Preparing Decision Tree")
+        start_time = time.time()
+        dt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
+        tdt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(tdt, "DecisionTreeClassifier", x_train, x_test, y_train, y_test)
-
+    if save_trained_models: save_model(tdt, "Decision Tree")
     features_names = data_train.drop(['label'], axis=1)
     f_importances(abs(tdt.feature_importances_), features_names, top=18, title="Decision Tree")
 
@@ -385,33 +423,43 @@ if (bool_dt):
     plt.clf()
 
 if (bool_rf): 
-    printlog(f"[{get_ts()}] Preparing RandomForest")
-    start_time = time.time()
-    rf = RandomForestClassifier(**rf_params).fit(x_train, y_train)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if load_saved_models:
+        rf = load_model("RandomForestClassifier")
+    else:
+        printlog(f"[{get_ts()}] Preparing RandomForest")
+        start_time = time.time()
+        rf = RandomForestClassifier(**rf_params).fit(x_train, y_train)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(rf, "RandomForestClassifier", x_train, x_test, y_train, y_test)
     features_names = data_train.drop(['label'], axis=1)
     f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
-
-    printlog(f"[{get_ts()}] Preparing Reduced RandomForest")
-    start_time = time.time()
-    rrf = RandomForestClassifier(**rf_params).fit(x_train_reduced, y_train_reduced)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if save_trained_models: save_model(rf, "RandomForestClassifier")
+    if load_saved_models:
+        rrf = load_model("Reduced RandomForest")
+    else:
+        printlog(f"[{get_ts()}] Preparing Reduced Random Forest")
+        start_time = time.time()
+        rrf = RandomForestClassifier(**rf_params).fit(x_train_reduced, y_train_reduced)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(rrf, "Reduced RandomForest", x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced)
+    if save_trained_models: save_model(rrf, "Reduced RandomForest")
 
 if (bool_xgb): 
-    printlog(f"[{get_ts()}] Preparing XGBoost")
-    start_time = time.time()
-    xg_r = xgb.XGBRegressor(**xgb_params).fit(x_train_reduced, y_train_reduced)
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    name = "XGBOOST"
-    train_error = metrics.mean_squared_error(y_train_reduced, xg_r.predict(x_train_reduced), squared=False)
-    test_error = metrics.mean_squared_error(y_test_reduced, xg_r.predict(x_test_reduced), squared=False)
-    printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
-
+    if load_saved_models:
+        xg_r = load_model("XGBoost")
+    else:
+        printlog(f"[{get_ts()}] Preparing XGBoost")
+        start_time = time.time()
+        xg_r = xgb.XGBRegressor(**xgb_params).fit(x_train_reduced, y_train_reduced)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+        name = "XGBOOST"
+        train_error = metrics.mean_squared_error(y_train_reduced, xg_r.predict(x_train_reduced), squared=False)
+        test_error = metrics.mean_squared_error(y_test_reduced, xg_r.predict(x_test_reduced), squared=False)
+        printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
+    if save_trained_models: save_model(xg_r, "XGBoost")
     y_pred = xg_r.predict(x_test_reduced)
     df = pd.DataFrame({"Y_test": y_test_reduced, "Y_pred": y_pred})
     plt.figure(figsize=(16, 8))
@@ -421,22 +469,27 @@ if (bool_xgb):
     plt.clf()
 
 if (bool_dnn):
-    name = "DNN"
-    printlog(f"[{get_ts()}] Preparing DNN")
-    start_time = time.time()
-    dnn = tf.keras.Sequential()
-    dnn.add(tf.keras.layers.Dense(128, activation='relu', input_shape=(x_train.shape[1],)))
-    dnn.add(tf.keras.layers.Dropout(0.2))
-    dnn.add(tf.keras.layers.Dense(64, activation='relu'))
-    dnn.add(tf.keras.layers.Dropout(0.2))
-    dnn.add(tf.keras.layers.Dense(1, activation='relu'))
-    dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
-    results = dnn.fit(x_train, y_train, epochs=50, batch_size=32, validation_data=(x_test, y_test))
-    end_time = time.time()
-    printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+    if load_saved_models:
+        dnn = load_model("Deep Neural Network")
+    else:
+        name = "DNN"
+        printlog(f"[{get_ts()}] Preparing DNN")
+        start_time = time.time()
+        dnn = tf.keras.Sequential()
+        dnn.add(tf.keras.layers.Dense(128, activation='relu', input_shape=(x_train.shape[1],)))
+        dnn.add(tf.keras.layers.Dropout(0.2))
+        dnn.add(tf.keras.layers.Dense(64, activation='relu'))
+        dnn.add(tf.keras.layers.Dropout(0.2))
+        dnn.add(tf.keras.layers.Dense(1, activation='relu'))
+        dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
+        results = dnn.fit(x_train, y_train, epochs=50, batch_size=32, validation_data=(x_test, y_test))
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     # evaluate_classification(dnn, "DNN", x_train, x_test, y_train, y_test)
     loss, accuracy = dnn.evaluate(x_test, y_test)
     printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
+    if save_trained_models: save_model(dnn, "Deep Neural Network")
+    plt.subplots(figsize=(8, 6))
     plt.plot(results.history['accuracy'], label='Training Accuracy')
     plt.plot(results.history['val_accuracy'], label='Validation Accuracy')
     plt.title('Model Training History')
