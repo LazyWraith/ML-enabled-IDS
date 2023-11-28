@@ -53,7 +53,7 @@ if dataset_name == "UNSW-NB15":
     train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
     test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
     # Preprocessing Settings
-    use_single_dataset = True # Use a single dataset and splits it into test and train sets
+    use_single_dataset = False # Use a single dataset and splits it into test and train sets
     split_train_ratio = 0.6 # Train size
     split_test_ratio = 1 - split_train_ratio
     rndm_state = 42
