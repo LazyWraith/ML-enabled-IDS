@@ -1,0 +1,76 @@
+[000.0000] Init complete!
+[000.0000] Reading from ./input/UNSW_NB15/UNSW_NB15_training-set.csv
+[001.2274] Mapping outcomes...
+[004.4915] Training set original features: 39, reduced features: 20
+[004.4915] Testing set original features: 39, reduced features: 20
+[004.4925] Preparing Logistic Regression
+[014.2290] Training time: 9.7365
+[014.2300] Evaluating classifier: Logistic Regression...
+[014.5775] Testing time: 0.3475
+[014.5777] Generating results...
+[014.5777] Training Accuracy Logistic Regression 82.40173929942185  Test Accuracy Logistic Regression 75.32807500812702
+[014.5777] Training Precesion Logistic Regression 83.00340274359577  Test Precesion Logistic Regression 95.99540535638717
+[014.5777] Training Recall Logistic Regression 85.55766346069002  Test Recall Logistic Regression 66.52617289950645
+[014.8302] Saving model to ./Saved models\v0.1 Exclusive Logistic Regression - UNSW-NB15.pkl
+[014.8322] Preparing KNeighborsClassifier
+[014.8502] Training time: 0.0180
+[014.8502] Evaluating classifier: KNeighborsClassifier...
+[222.1329] Testing time: 207.2817
+[222.1339] Generating results...
+[222.1339] Training Accuracy KNeighborsClassifier 94.0314822912112  Test Accuracy KNeighborsClassifier 85.95308570157579
+[222.1339] Training Precesion KNeighborsClassifier 96.4318536899182  Test Precesion KNeighborsClassifier 96.58819247001878
+[222.1339] Training Recall KNeighborsClassifier 92.58581134739256  Test Recall KNeighborsClassifier 82.26761967806537
+[270.4593] Saving model to ./Saved models\v0.1 Exclusive KNeighborsClassifier - UNSW-NB15.pkl
+[270.4903] Preparing GaussianNB
+[270.5609] Training time: 0.0705
+[270.5609] Evaluating classifier: GaussianNB...
+[271.2487] Testing time: 0.6879
+[271.2487] Generating results...
+[271.2487] Training Accuracy GaussianNB 70.78292765874751  Test Accuracy GaussianNB 83.74196565549416
+[271.2487] Training Precesion GaussianNB 66.20561487958324  Test Precesion GaussianNB 82.4810836325147
+[271.2487] Training Recall GaussianNB 95.87487867290214  Test Recall GaussianNB 96.639042743064
+[271.5314] Saving model to ./Saved models\v0.1 Exclusive GaussianNB - UNSW-NB15.pkl
+[271.5324] Preparing Linear SVC(LBasedImpl)
+[285.6622] Training time: 14.1298
+[285.6632] Evaluating classifier: Linear SVC(LBasedImpl)...
+[285.8648] Testing time: 0.2016
+[285.8648] Generating results...
+[285.8648] Training Accuracy Linear SVC(LBasedImpl) 81.74950201622698  Test Accuracy Linear SVC(LBasedImpl) 74.44522387804335
+[285.8648] Training Precesion Linear SVC(LBasedImpl) 86.63330432259936  Test Precesion Linear SVC(LBasedImpl) 95.6244414245663
+[285.8648] Training Recall Linear SVC(LBasedImpl) 79.05011912115062  Test Recall Linear SVC(LBasedImpl) 65.4485884985043
+[286.0345] Saving model to ./Saved models\v0.1 Exclusive Linear SVC(LBasedImpl) - UNSW-NB15.pkl
+[286.0355] Preparing Decision Tree
+[288.1603] Training time: 2.1249
+[288.1603] Evaluating classifier: DecisionTreeClassifier...
+[288.4152] Testing time: 0.2549
+[288.4154] Generating results...
+[288.4154] Training Accuracy DecisionTreeClassifier 96.62099791089734  Test Accuracy DecisionTreeClassifier 47.44013094484462
+[288.4154] Training Precesion DecisionTreeClassifier 98.32810867293625  Test Precesion DecisionTreeClassifier 96.433208062863
+[288.4154] Training Recall DecisionTreeClassifier 95.48663195976353  Test Recall DecisionTreeClassifier 23.651553112509532
+[288.5900] Saving model to ./Saved models\v0.1 Exclusive Decision Tree - UNSW-NB15.pkl
+[292.8004] Preparing RandomForest
+[321.2467] Training time: 28.4453
+[321.2472] Evaluating classifier: RandomForestClassifier...
+[324.5654] Testing time: 3.3180
+[324.5658] Generating results...
+[324.5658] Training Accuracy RandomForestClassifier 91.34722829519507  Test Accuracy RandomForestClassifier 82.69543346963916
+[324.5658] Training Precesion RandomForestClassifier 89.81327109036346  Test Precesion RandomForestClassifier 96.3126398501327
+[324.5658] Training Recall RandomForestClassifier 95.06750198535251  Test Recall RandomForestClassifier 77.5441801225061
+[325.6878] Saving model to ./Saved models\v0.1 Exclusive RandomForestClassifier - UNSW-NB15.pkl
+[325.6938] Preparing Reduced Random Forest
+[385.6189] Training time: 59.9231
+[385.6199] Evaluating classifier: Reduced RandomForest...
+[388.9326] Testing time: 3.3127
+[388.9333] Generating results...
+[388.9333] Training Accuracy Reduced RandomForest 85.41150463975124  Test Accuracy Reduced RandomForest 29.446050838081224
+[388.9333] Training Precesion Reduced RandomForest 86.66402587971216  Test Precesion Reduced RandomForest 24.91675278447583
+[388.9333] Training Recall Reduced RandomForest 86.87240801200036  Test Recall Reduced RandomForest 1.818318934817037
+[389.8351] Saving model to ./Saved models\v0.1 Exclusive Reduced RandomForest - UNSW-NB15.pkl
+[389.8394] Preparing XGBoost
+[390.0947] Training time: 0.2553
+[390.1492] Training Error XGBOOST 0.4752726149160909  Test error XGBOOST 0.5039805167759694
+[390.1492] Saving model to ./Saved models\v0.1 Exclusive XGBoost - UNSW-NB15.pkl
+[390.3267] Preparing DNN
+[858.0528] Training time: 467.7260
+Test Loss: 2.8128, Test Accuracy: 0.6945
+[864.0891] Saving model to ./Saved models\v0.1 Exclusive Deep Neural Network - UNSW-NB15.pkl
