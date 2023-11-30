@@ -30,11 +30,14 @@ generate_statistics_pie = True
 # NSL-KDD
 # CICIDS2017
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15-save"
+output_dir = "./output/UNSW-NB15-split"
 load_saved_models = False
 save_trained_models =  True
 model_save_path = "./Saved models"
-model_save_version = "Single v0.0"
+
+# Split: Splits train model into 60:40 sets
+# Exclusive: trains with training set and tests with testing set exclusively
+model_save_version = "v0.1 Split"
 
 # Models to evaluate
 bool_lr         = True
@@ -53,7 +56,7 @@ if dataset_name == "UNSW-NB15":
     train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
     test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
     # Preprocessing Settings
-    use_single_dataset = False # Use a single dataset and splits it into test and train sets
+    use_single_dataset = True # Use a single dataset and splits it into test and train sets
     split_train_ratio = 0.6 # Train size
     split_test_ratio = 1 - split_train_ratio
     rndm_state = 42
@@ -221,7 +224,7 @@ def load_model(name):
 def pie_plot(df, cols_list, rows, cols):
     fig, axes = plt.subplots(rows, cols)
     for ax, col in zip(axes.ravel(), cols_list):
-        df[col].value_counts().plot(ax=ax, kind='pie', figsize=(15, 15), fontsize=10, autopct='%1.0f%%')
+        df[col].value_counts().plot(ax=ax, kind='pie', figsize=(12, 8), fontsize=10, autopct='%1.0f%%')
         ax.set_title(str(col), fontsize=12)
     counter = get_filename_counter()
     plt.savefig(os.path.join(output_dir, f"{counter}{col}_pie_chart.png"))  # Save the chart
@@ -353,8 +356,9 @@ def f_importances(coef, names, top=-1, title="untitled"):
     plt.clf()
 
 if (bool_lr): 
+    file_name = "Logistic Regression"
     if load_saved_models:
-        lr = load_model("Logistic Regression")
+        lr = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing Logistic Regression")
         start_time = time.time()
@@ -362,11 +366,12 @@ if (bool_lr):
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(lr, "Logistic Regression", x_train, x_test, y_train, y_test)
-    if save_trained_models: save_model(lr, "Logistic Regression")
+    if save_trained_models: save_model(lr, file_name)
 
 if (bool_knn): 
+    file_name = "KNeighborsClassifier"
     if load_saved_models:
-        knn = load_model("KNeighborsClassifier")
+        knn = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing KNeighborsClassifier")
         start_time = time.time()
@@ -374,11 +379,12 @@ if (bool_knn):
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(knn, "KNeighborsClassifier", x_train, x_test, y_train, y_test)
-    if save_trained_models: save_model(knn, "KNeighborsClassifier")
+    if save_trained_models: save_model(knn, file_name)
 
 if (bool_gnb): 
+    file_name = "GaussianNB"
     if load_saved_models:
-        gnb = load_model("GaussianNB")
+        gnb = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing GaussianNB")
         start_time = time.time()
@@ -386,11 +392,12 @@ if (bool_gnb):
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(gnb, "GaussianNB", x_train, x_test, y_train, y_test)
-    if save_trained_models: save_model(gnb, "GaussianNB")
+    if save_trained_models: save_model(gnb, file_name)
 
 if (bool_lin_svc): 
+    file_name = "Linear SVC(LBasedImpl)"
     if load_saved_models:
-        lin_svc = load_model("LinearSVC(LBasedImpl)")
+        lin_svc = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing Linear SVC(LBasedImpl)")
         start_time = time.time()
@@ -398,10 +405,11 @@ if (bool_lin_svc):
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(lin_svc, "Linear SVC(LBasedImpl)", x_train, x_test, y_train, y_test)
-    if save_trained_models: save_model(lin_svc, "Linear SVC(LBasedImpl)")
+    if save_trained_models: save_model(lin_svc, file_name)
 if (bool_dt): 
+    file_name = "DecisionTreeClassifier"
     if load_saved_models:
-        dt = load_model("DecisionTreeClassifier")
+        dt = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing Decision Tree")
         start_time = time.time()
@@ -410,7 +418,7 @@ if (bool_dt):
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(tdt, "DecisionTreeClassifier", x_train, x_test, y_train, y_test)
-    if save_trained_models: save_model(tdt, "Decision Tree")
+    if save_trained_models: save_model(tdt, file_name)
     features_names = data_train.drop(['label'], axis=1)
     f_importances(abs(tdt.feature_importances_), features_names, top=18, title="Decision Tree")
 
@@ -423,8 +431,9 @@ if (bool_dt):
     plt.clf()
 
 if (bool_rf): 
+    file_name = "RandomForestClassifier"
     if load_saved_models:
-        rf = load_model("RandomForestClassifier")
+        rf = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing RandomForest")
         start_time = time.time()
@@ -434,7 +443,7 @@ if (bool_rf):
     evaluate_classification(rf, "RandomForestClassifier", x_train, x_test, y_train, y_test)
     features_names = data_train.drop(['label'], axis=1)
     f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
-    if save_trained_models: save_model(rf, "RandomForestClassifier")
+    if save_trained_models: save_model(rf, file_name)
     if load_saved_models:
         rrf = load_model("Reduced RandomForest")
     else:
@@ -447,8 +456,9 @@ if (bool_rf):
     if save_trained_models: save_model(rrf, "Reduced RandomForest")
 
 if (bool_xgb): 
+    file_name = "XGBoost"
     if load_saved_models:
-        xg_r = load_model("XGBoost")
+        xg_r = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing XGBoost")
         start_time = time.time()
@@ -459,7 +469,7 @@ if (bool_xgb):
         train_error = metrics.mean_squared_error(y_train_reduced, xg_r.predict(x_train_reduced), squared=False)
         test_error = metrics.mean_squared_error(y_test_reduced, xg_r.predict(x_test_reduced), squared=False)
         printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
-    if save_trained_models: save_model(xg_r, "XGBoost")
+    if save_trained_models: save_model(xg_r, file_name)
     y_pred = xg_r.predict(x_test_reduced)
     df = pd.DataFrame({"Y_test": y_test_reduced, "Y_pred": y_pred})
     plt.figure(figsize=(16, 8))
@@ -469,8 +479,9 @@ if (bool_xgb):
     plt.clf()
 
 if (bool_dnn):
+    file_name = "Deep Neural Network"
     if load_saved_models:
-        dnn = load_model("Deep Neural Network")
+        dnn = load_model(file_name)
     else:
         name = "DNN"
         printlog(f"[{get_ts()}] Preparing DNN")
@@ -488,7 +499,7 @@ if (bool_dnn):
     # evaluate_classification(dnn, "DNN", x_train, x_test, y_train, y_test)
     loss, accuracy = dnn.evaluate(x_test, y_test)
     printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
-    if save_trained_models: save_model(dnn, "Deep Neural Network")
+    if save_trained_models: save_model(dnn, file_name)
     plt.subplots(figsize=(8, 6))
     plt.plot(results.history['accuracy'], label='Training Accuracy')
     plt.plot(results.history['val_accuracy'], label='Validation Accuracy')
