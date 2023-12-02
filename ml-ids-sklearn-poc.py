@@ -32,7 +32,7 @@ generate_statistics_pie = True
 # CICIDS2017
 # Set the dataset name
 dataset_name = "UNSW-NB15"  # Replace with the desired dataset name
-output_dir = "./output/UNSW-NB15-split"
+output_dir = "./output/UNSW-NB15-json"
 load_saved_models = True
 save_trained_models =  not load_saved_models
 model_save_path = "./Saved models"
@@ -67,6 +67,7 @@ if dataset_name in datasets_config:
     # Preprocessing Settings
     use_single_dataset = config["use_single_dataset"]
     split_train_ratio = config["split_train_ratio"]
+    split_test_ratio = 1 - split_train_ratio
     rndm_state = config["rndm_state"]
 
     # Dataset Headers
@@ -340,6 +341,7 @@ if (bool_dt):
     file_name = "DecisionTreeClassifier"
     if load_saved_models:
         dt = load_model(file_name)
+        tdt = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing Decision Tree")
         start_time = time.time()
@@ -410,37 +412,38 @@ if (bool_xgb):
 
 if (bool_dnn):
     file_name = "Deep Neural Network"
+    name = "DNN"
     if load_saved_models:
         dnn = load_model(file_name)
     else:
-        name = "DNN"
         printlog(f"[{get_ts()}] Preparing DNN")
         start_time = time.time()
         dnn = tf.keras.Sequential()
         for units in dnn_params["dense_layers"]:
-            dnn.add(tf.keras.layers.Dense(units, activation=dnn_params["activation"], input_shape=(input_shape,)))
+            dnn.add(tf.keras.layers.Dense(units, activation=dnn_params["activation"], input_shape=(x_train.shape[1],)))
             dnn.add(tf.keras.layers.Dropout(dnn_params["dropout_rate"]))
         # Output Dense layer
         dnn.add(tf.keras.layers.Dense(1, activation=dnn_params["output_activation"]))
+        dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=dnn_params["learning_rate"]), loss=dnn_params["loss"], metrics=dnn_params["metrics"])
         results = dnn.fit(x_train, y_train, epochs=50, batch_size=32, validation_data=(x_test, y_test))
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    # evaluate_classification(dnn, "DNN", x_train, x_test, y_train, y_test)
+        plt.subplots(figsize=(8, 6))
+        plt.plot(results.history['accuracy'], label='Training Accuracy')
+        plt.plot(results.history['val_accuracy'], label='Validation Accuracy')
+        plt.title('Model Training History')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend(loc='lower right')
+        counter = get_filename_counter()
+        plt.savefig(os.path.join(output_dir, f"{counter}Deep Neural Network.png"))
+        print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Deep Neural Network.png", flush=True)
+        if(display_results): plt.show()
+        plt.clf()
+
     loss, accuracy = dnn.evaluate(x_test, y_test)
     printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
     if save_trained_models: save_model(dnn, file_name)
-    plt.subplots(figsize=(8, 6))
-    plt.plot(results.history['accuracy'], label='Training Accuracy')
-    plt.plot(results.history['val_accuracy'], label='Validation Accuracy')
-    plt.title('Model Training History')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend(loc='lower right')
-    counter = get_filename_counter()
-    plt.savefig(os.path.join(output_dir, f"{counter}Deep Neural Network.png"))
-    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Deep Neural Network.png", flush=True)
-    if(display_results): plt.show()
-    plt.clf()
 
     actual = y_test
     # predicted = dnn.predict(x_test)
