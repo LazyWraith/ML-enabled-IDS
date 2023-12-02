@@ -19,6 +19,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn import metrics
 import pickle
+import json
 pd.set_option('display.max_columns', None)
 warnings.filterwarnings('ignore')
 
@@ -29,10 +30,11 @@ generate_statistics_pie = True
 # UNSW-NB15
 # NSL-KDD
 # CICIDS2017
-dataset_name = "UNSW-NB15"
+# Set the dataset name
+dataset_name = "UNSW-NB15"  # Replace with the desired dataset name
 output_dir = "./output/UNSW-NB15-split"
-load_saved_models = False
-save_trained_models =  True
+load_saved_models = True
+save_trained_models =  not load_saved_models
 model_save_path = "./Saved models"
 
 # Split: Splits train model into 60:40 sets
@@ -50,119 +52,47 @@ bool_rf         = True
 bool_dnn        = True
 
 # Per dataset settings
+# Read dataset configuration from JSON
+with open('datasets_config.json', 'r') as file:
+    datasets_config = json.load(file)
 
-if dataset_name == "UNSW-NB15":
+# Check if the dataset name is valid
+if dataset_name in datasets_config:
+    config = datasets_config[dataset_name]
+
     # Dataset Path
-    train_path = "./input/UNSW_NB15/UNSW_NB15_training-set.csv"
-    test_path = "./input/UNSW_NB15/UNSW_NB15_testing-set.csv"
+    train_path = config["train_path"]
+    test_path = config["test_path"]
+
     # Preprocessing Settings
-    use_single_dataset = True # Use a single dataset and splits it into test and train sets
-    split_train_ratio = 0.6 # Train size
-    split_test_ratio = 1 - split_train_ratio
-    rndm_state = 42
+    use_single_dataset = config["use_single_dataset"]
+    split_train_ratio = config["split_train_ratio"]
+    rndm_state = config["rndm_state"]
+
     # Dataset Headers
-    read_cols_from_csv = True
-    cat_cols = ['attack_cat', 'label']
-    obj_cols = ['proto', 'service', 'state']
-    drop_cols = ['id']
-    label_name_map = 'label'
-    label_value_map = 'Normal'
-    pie_stats = [
-        ['proto', 'service'], 
-        ['attack_cat', 'label']
-                 ]
-elif dataset_name == "NSL-KDD":
-    # Dataset Path
-    train_path = "./input/nsl-kdd/KDDTrain+.txt"
-    test_path = "./input/nsl-kdd/KDDTest+.txt"
-    # Preprocessing Settings
-    use_single_dataset = True # Use a single dataset and splits it into test and train sets
-    split_train_ratio = 0.6 # Train size
-    split_test_ratio = 1 - split_train_ratio
-    rndm_state = 42
-    # Dataset Headers
-    read_cols_from_csv = False
-    columns = (['duration','protocol_type','service','flag','src_bytes','dst_bytes','land','wrong_fragment','urgent','hot','num_failed_logins','logged_in','num_compromised','root_shell','su_attempted','num_root','num_file_creations','num_shells','num_access_files','num_outbound_cmds','is_host_login','is_guest_login','count','srv_count','serror_rate','srv_serror_rate','rerror_rate','srv_rerror_rate','same_srv_rate','diff_srv_rate','srv_diff_host_rate','dst_host_count','dst_host_srv_count','dst_host_same_srv_rate','dst_host_diff_srv_rate','dst_host_same_src_port_rate','dst_host_srv_diff_host_rate','dst_host_serror_rate','dst_host_srv_serror_rate','dst_host_rerror_rate','dst_host_srv_rerror_rate','outcome','level'])
-    cat_cols = ['is_host_login','protocol_type','service','flag','land', 'logged_in','is_guest_login', 'level', 'outcome']
-    drop_cols = []
-    obj_cols = ['protocol_type', 'service', 'flag']
-    label_name_map = 'outcome'
-    label_value_map = 'normal'
-    pie_stats = [
-        ['protocol_type', 'flag'], 
-        ['service', 'outcome']
-                 ]
-elif dataset_name =="CICIDS2017":
-    # Dataset Path
-    train_path = "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv"
-    test_path = "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv"
-    # Preprocessing Settings
-    use_single_dataset = True # Use a single dataset and splits it into test and train sets
-    split_train_ratio = 0.6 # Train size
-    split_test_ratio = 1 - split_train_ratio
-    rndm_state = 42
-    # Dataset Headers
-    read_cols_from_csv = True
-    cat_cols = ['Label']
-    drop_cols = ['Flow Bytes/s', 'Flow Packets/s', 'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'Idle Mean', 'Idle Std', 'Idle Max', 'Idle Min', 'Fwd Header Length', 'Bwd Header Length']
-    obj_cols = []
-    label_name_map = 'Label'
-    label_value_map = 'BENIGN'
-    pie_stats = [
-        ['Label', 'Label']
-                 ]
+    read_cols_from_csv = config.get("read_cols_from_csv", False)
+    cat_cols = config["cat_cols"]
+    obj_cols = config["obj_cols"]
+    drop_cols = config["drop_cols"]
+    label_name_map = config["label_name_map"]
+    label_value_map = config["label_value_map"]
+    pie_stats = config["pie_stats"]
     
 else:
     print("Invalid dataset name!")
 
 ###----ML-PARAMETERS-------###
+with open('./Hyperparameter Tuning/hyperparameters', 'r') as file:
+    hyperparameters = json.load(file)
 
-# Logistic Regression
-lr_params = {
-    "C": 0.36585696635446396,
-    "max_iter": 868,
-    "solver": "lbfgs"
-}
-
-# K-Nearest Neighbors
-knn_params = {
-    "n_neighbors": 21
-}
-
-# GaussianNB
-gnb_params = {
-    "var_smoothing": 9.437310900762216e-08
-}
-
-# LinearSVC Support Vector Classification
-lin_svc_params = {
-    "C": 1.0000346600564648e-05,
-    "max_iter": 709
-}
-
-# Decision Trees
-dt_params = {
-    "max_depth": 10,
-    "min_samples_split": 13,
-    "min_samples_leaf": 3
-}
-
-# XGBoost
-xgb_params = {
-    "n_estimators": 80,
-    "max_depth": 3,
-    "learning_rate": 0.001182925709827524
-}
-
-# RandomForestClassifier
-rf_params = {
-    "n_estimators": 87,
-    "max_depth": 4,
-    "min_samples_split": 9,
-    "min_samples_leaf": 9,
-    "max_features": 0.793102879894246
-}
-# to add: DNN
+lr_params = hyperparameters.get("lr_params", {})
+knn_params = hyperparameters.get("knn_params", {})
+gnb_params = hyperparameters.get("gnb_params", {})
+lin_svc_params = hyperparameters.get("lin_svc_params", {})
+dt_params = hyperparameters.get("dt_params", {})
+xgb_params = hyperparameters.get("xgb_params", {})
+rf_params = hyperparameters.get("rf_params", {})
+dnn_params = hyperparameters.get("dnn_params", {})
 ##############################
 
 Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -487,12 +417,11 @@ if (bool_dnn):
         printlog(f"[{get_ts()}] Preparing DNN")
         start_time = time.time()
         dnn = tf.keras.Sequential()
-        dnn.add(tf.keras.layers.Dense(128, activation='relu', input_shape=(x_train.shape[1],)))
-        dnn.add(tf.keras.layers.Dropout(0.2))
-        dnn.add(tf.keras.layers.Dense(64, activation='relu'))
-        dnn.add(tf.keras.layers.Dropout(0.2))
-        dnn.add(tf.keras.layers.Dense(1, activation='relu'))
-        dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
+        for units in dnn_params["dense_layers"]:
+            dnn.add(tf.keras.layers.Dense(units, activation=dnn_params["activation"], input_shape=(input_shape,)))
+            dnn.add(tf.keras.layers.Dropout(dnn_params["dropout_rate"]))
+        # Output Dense layer
+        dnn.add(tf.keras.layers.Dense(1, activation=dnn_params["output_activation"]))
         results = dnn.fit(x_train, y_train, epochs=50, batch_size=32, validation_data=(x_test, y_test))
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
