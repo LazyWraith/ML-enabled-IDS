@@ -53,7 +53,7 @@ bool_dnn        = True
 
 # Per dataset settings
 # Read dataset configuration from JSON
-with open('datasets_config.json', 'r') as file:
+with open('dataset-config.json', 'r') as file:
     datasets_config = json.load(file)
 
 # Check if the dataset name is valid
@@ -82,7 +82,7 @@ else:
     print("Invalid dataset name!")
 
 ###----ML-PARAMETERS-------###
-with open('./Hyperparameter Tuning/hyperparameters', 'r') as file:
+with open('./Hyperparameter Tuning/hyperparameters.json', 'r') as file:
     hyperparameters = json.load(file)
 
 lr_params = hyperparameters.get("lr_params", {})
