@@ -31,7 +31,7 @@ generate_statistics_pie = True
 # NSL-KDD
 # CICIDS2017
 # Set the dataset name
-dataset_name = "UNSW-NB15"  # Replace with the desired dataset name
+dataset_name = "UNSW-NB15"
 output_dir = "./output/UNSW-NB15-json"
 load_saved_models = True
 save_trained_models =  not load_saved_models
