@@ -51,7 +51,11 @@ bool_xgb        = True
 bool_rf         = True
 bool_dnn        = True
 
-# Per dataset settings
+# Preprocessing settings
+use_single_dataset = True # Use a single dataset and splits it into test and train sets
+split_train_ratio = 0.6 # Train size
+split_test_ratio = 1 - split_train_ratio
+rndm_state = 42
 # Read dataset configuration from JSON
 with open('dataset-config.json', 'r') as file:
     datasets_config = json.load(file)
@@ -63,12 +67,6 @@ if dataset_name in datasets_config:
     # Dataset Path
     train_path = config["train_path"]
     test_path = config["test_path"]
-
-    # Preprocessing Settings
-    use_single_dataset = config["use_single_dataset"]
-    split_train_ratio = config["split_train_ratio"]
-    split_test_ratio = 1 - split_train_ratio
-    rndm_state = config["rndm_state"]
 
     # Dataset Headers
     read_cols_from_csv = config.get("read_cols_from_csv", False)
