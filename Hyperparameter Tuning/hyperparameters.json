@@ -1,0 +1,43 @@
+{
+  "lr_params": {
+    "C": 0.36585696635446396,
+    "max_iter": 868,
+    "solver": "lbfgs"
+  },
+  "knn_params": {
+    "n_neighbors": 21
+  },
+  "gnb_params": {
+    "var_smoothing": 9.437310900762216e-08
+  },
+  "lin_svc_params": {
+    "C": 1.0000346600564648e-05,
+    "max_iter": 709
+  },
+  "dt_params": {
+    "max_depth": 10,
+    "min_samples_split": 13,
+    "min_samples_leaf": 3
+  },
+  "xgb_params": {
+    "n_estimators": 80,
+    "max_depth": 3,
+    "learning_rate": 0.001182925709827524
+  },
+  "rf_params": {
+    "n_estimators": 87,
+    "max_depth": 4,
+    "min_samples_split": 9,
+    "min_samples_leaf": 9,
+    "max_features": 0.793102879894246
+  },
+  "dnn_params": {
+    "dense_layers": [128, 64],
+    "activation": "relu",
+    "dropout_rate": 0.2,
+    "output_activation": "relu",
+    "learning_rate": 0.001,
+    "loss": "binary_crossentropy",
+    "metrics": ["accuracy"]
+  }  
+}
