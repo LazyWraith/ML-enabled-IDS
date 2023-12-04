@@ -16,10 +16,13 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import RobustScaler
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 from sklearn import svm
 from sklearn import metrics
 import pickle
 import json
+import time
+start_ts = time.time()
 pd.set_option('display.max_columns', None)
 warnings.filterwarnings('ignore')
 
@@ -52,51 +55,12 @@ bool_rf         = True
 bool_dnn        = True
 
 # Preprocessing settings
+use_kfold = True
 use_single_dataset = True # Use a single dataset and splits it into test and train sets
 split_train_ratio = 0.6 # Train size
 split_test_ratio = 1 - split_train_ratio
 rndm_state = 42
-# Read dataset configuration from JSON
-with open('dataset-config.json', 'r') as file:
-    datasets_config = json.load(file)
 
-# Check if the dataset name is valid
-if dataset_name in datasets_config:
-    config = datasets_config[dataset_name]
-
-    # Dataset Path
-    train_path = config["train_path"]
-    test_path = config["test_path"]
-
-    # Dataset Headers
-    read_cols_from_csv = config.get("read_cols_from_csv", False)
-    cat_cols = config["cat_cols"]
-    obj_cols = config["obj_cols"]
-    drop_cols = config["drop_cols"]
-    label_name_map = config["label_name_map"]
-    label_value_map = config["label_value_map"]
-    pie_stats = config["pie_stats"]
-    
-else:
-    print("Invalid dataset name!")
-
-###----ML-PARAMETERS-------###
-with open('./Hyperparameter Tuning/hyperparameters.json', 'r') as file:
-    hyperparameters = json.load(file)
-
-lr_params = hyperparameters.get("lr_params", {})
-knn_params = hyperparameters.get("knn_params", {})
-gnb_params = hyperparameters.get("gnb_params", {})
-lin_svc_params = hyperparameters.get("lin_svc_params", {})
-dt_params = hyperparameters.get("dt_params", {})
-xgb_params = hyperparameters.get("xgb_params", {})
-rf_params = hyperparameters.get("rf_params", {})
-dnn_params = hyperparameters.get("dnn_params", {})
-##############################
-
-Path(output_dir).mkdir(parents=True, exist_ok=True)
-# result output
-log = open(f'{output_dir}/log.txt', 'w')
 filename_counter = 0
 
 def get_filename_counter():
@@ -108,32 +72,9 @@ def printlog(message):
     log.write(message + "\n")
     print(message, flush=True)
 
-import time
-start_ts = time.time()
-
 def get_ts():
     ts = time.time() - start_ts
     return f"{ts:>08.4f}"
-
-printlog(f"[{get_ts()}] Init complete!")
-printlog(f"[{get_ts()}] Reading from {train_path}")
-
-# Read Train and Test dataset
-data_train = pd.read_csv(train_path)
-data_test = pd.read_csv(test_path)
-if (read_cols_from_csv): 
-    # columns = data_train.columns.tolist()
-    # Removes white spaces
-    columns = pd.read_csv(train_path).columns.str.strip().tolist()
-
-# Assign names for columns
-data_train.columns = columns
-data_test.columns = columns
-data_train.info()
-data_test.info()
-# data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
-
-printlog(f"[{get_ts()}] Mapping outcomes...")
 
 def save_model(model, name):
     Path(model_save_path).mkdir(parents=True, exist_ok=True)
@@ -161,7 +102,7 @@ def pie_plot(df, cols_list, rows, cols):
     if (display_results): plt.show()
     plt.clf()
 
-def preprocess(dataframe, obj_cols_ = obj_cols):
+def preprocess(dataframe, obj_cols_):
     dataframe = dataframe.drop(drop_cols, axis=1)
     df_num = dataframe.drop(cat_cols, axis=1)
     num_cols = df_num.select_dtypes(include=[np.number]).columns
@@ -174,61 +115,6 @@ def preprocess(dataframe, obj_cols_ = obj_cols):
     dataframe = pd.concat([std_df, labels], axis=1)
     return dataframe
 
-if (generate_statistics_pie):
-    for i in pie_stats:
-        pie_plot(data_train, i, 1, 2)
-
-# Process and split dataset
-
-if (use_single_dataset): 
-    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
-    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
-    
-    scaled_train = preprocess(data_train)
-
-    x = scaled_train.drop(label_name_map , axis = 1).values
-    y = scaled_train[label_name_map].values
-
-    pca = PCA(n_components=20)
-    pca = pca.fit(x)
-    x_reduced = pca.transform(x)
-    printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
-
-    y = y.astype('int')
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
-    x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
-
-else:
-    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
-    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
-
-    data_test.loc[data_test[label_name_map] == label_value_map, label_name_map] = 0
-    data_test.loc[data_test[label_name_map] != 0, label_name_map] = 1
-    # Process training set
-    
-    scaled_train = preprocess(data_train)
-    x_train = scaled_train.drop(label_name_map, axis=1).values
-    y_train = scaled_train[label_name_map].values
-    y_train = y_train.astype('int')
-
-    pca_train = PCA(n_components=20)
-    x_train_reduced = pca_train.fit_transform(x_train)
-    y_train_reduced = y_train
-
-    # Process testing set
-    scaled_test = preprocess(data_test)
-    x_test = scaled_test.drop(label_name_map, axis=1).values
-    y_test = scaled_test[label_name_map].values
-    y_test = y_test.astype('int')
-
-    pca_test = PCA(n_components=20)
-    x_test_reduced = pca_test.fit_transform(x_test)
-    y_test_reduced = y_test
-
-    printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
-    printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
-
-kernal_evals = dict()
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
@@ -284,7 +170,7 @@ def f_importances(coef, names, top=-1, title="untitled"):
     if (display_results): plt.show()
     plt.clf()
 
-if (bool_lr): 
+def run_lr(x_train, y_train, x_test, y_test):
     file_name = "Logistic Regression"
     if load_saved_models:
         lr = load_model(file_name)
@@ -297,7 +183,7 @@ if (bool_lr):
     evaluate_classification(lr, "Logistic Regression", x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(lr, file_name)
 
-if (bool_knn): 
+def run_knn(x_train, y_train, x_test, y_test):
     file_name = "KNeighborsClassifier"
     if load_saved_models:
         knn = load_model(file_name)
@@ -310,7 +196,7 @@ if (bool_knn):
     evaluate_classification(knn, "KNeighborsClassifier", x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(knn, file_name)
 
-if (bool_gnb): 
+def run_gnb(x_train, y_train, x_test, y_test):
     file_name = "GaussianNB"
     if load_saved_models:
         gnb = load_model(file_name)
@@ -323,7 +209,7 @@ if (bool_gnb):
     evaluate_classification(gnb, "GaussianNB", x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(gnb, file_name)
 
-if (bool_lin_svc): 
+def run_lin_svc(x_train, y_train, x_test, y_test): 
     file_name = "Linear SVC(LBasedImpl)"
     if load_saved_models:
         lin_svc = load_model(file_name)
@@ -335,7 +221,8 @@ if (bool_lin_svc):
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(lin_svc, "Linear SVC(LBasedImpl)", x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(lin_svc, file_name)
-if (bool_dt): 
+
+def run_dt(x_train, y_train, x_test, y_test):
     file_name = "DecisionTreeClassifier"
     if load_saved_models:
         dt = load_model(file_name)
@@ -360,7 +247,7 @@ if (bool_dt):
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}Decision_tree.png", flush=True)
     plt.clf()
 
-if (bool_rf): 
+def run_rf(x_train, y_train, x_test, y_test):
     file_name = "RandomForestClassifier"
     if load_saved_models:
         rf = load_model(file_name)
@@ -374,6 +261,8 @@ if (bool_rf):
     features_names = data_train.drop(['label'], axis=1)
     f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
     if save_trained_models: save_model(rf, file_name)
+    
+def run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
     if load_saved_models:
         rrf = load_model("Reduced RandomForest")
     else:
@@ -385,7 +274,7 @@ if (bool_rf):
     evaluate_classification(rrf, "Reduced RandomForest", x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced)
     if save_trained_models: save_model(rrf, "Reduced RandomForest")
 
-if (bool_xgb): 
+def run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
     file_name = "XGBoost"
     if load_saved_models:
         xg_r = load_model(file_name)
@@ -408,7 +297,7 @@ if (bool_xgb):
     # if (display_results): plt.show()
     plt.clf()
 
-if (bool_dnn):
+def run_dnn(x_train, y_train, x_test, y_test):
     file_name = "Deep Neural Network"
     name = "DNN"
     if load_saved_models:
@@ -457,6 +346,151 @@ if (bool_dnn):
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
     plt.clf()
 
+def run_models(x_train, y_train, x_test, y_test):
+    run_lr(x_train, y_train, x_test, y_test)
+    run_knn(x_train, y_train, x_test, y_test)
+    run_gnb(x_train, y_train, x_test, y_test)
+    run_lin_svc(x_train, y_train, x_test, y_test)
+    run_dt(x_train, y_train, x_test, y_test)
+    run_rf(x_train, y_train, x_test, y_test)
+    run_dnn(x_train, y_train, x_test, y_test)
 
+def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
+    run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    
+# Read dataset configuration from JSON
+with open('dataset-config.json', 'r') as file:
+    datasets_config = json.load(file)
+
+# Check if the dataset name is valid
+if dataset_name in datasets_config:
+    config = datasets_config[dataset_name]
+
+    # Dataset Path
+    train_path = config["train_path"]
+    test_path = config["test_path"]
+
+    # Dataset Headers
+    read_cols_from_csv = config.get("read_cols_from_csv", False)
+    cat_cols = config["cat_cols"]
+    obj_cols = config["obj_cols"]
+    drop_cols = config["drop_cols"]
+    label_name_map = config["label_name_map"]
+    label_value_map = config["label_value_map"]
+    pie_stats = config["pie_stats"]
+    
+else:
+    print("Invalid dataset name!")
+
+###----ML-PARAMETERS-------###
+with open('./Hyperparameter Tuning/hyperparameters.json', 'r') as file:
+    hyperparameters = json.load(file)
+
+lr_params = hyperparameters.get("lr_params", {})
+knn_params = hyperparameters.get("knn_params", {})
+gnb_params = hyperparameters.get("gnb_params", {})
+lin_svc_params = hyperparameters.get("lin_svc_params", {})
+dt_params = hyperparameters.get("dt_params", {})
+xgb_params = hyperparameters.get("xgb_params", {})
+rf_params = hyperparameters.get("rf_params", {})
+dnn_params = hyperparameters.get("dnn_params", {})
+##############################
+
+Path(output_dir).mkdir(parents=True, exist_ok=True)
+# result output
+log = open(f'{output_dir}/log.txt', 'w')
+
+printlog(f"[{get_ts()}] Init complete!")
+printlog(f"[{get_ts()}] Reading from {train_path}")
+
+# Read Train and Test dataset
+data_train = pd.read_csv(train_path)
+data_test = pd.read_csv(test_path)
+if (read_cols_from_csv): 
+    # columns = data_train.columns.tolist()
+    # Removes white spaces
+    columns = pd.read_csv(train_path).columns.str.strip().tolist()
+
+# Assign names for columns
+data_train.columns = columns
+data_test.columns = columns
+data_train.info()
+data_test.info()
+# data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
+
+printlog(f"[{get_ts()}] Mapping outcomes...")
+
+if (generate_statistics_pie):
+    for i in pie_stats:
+        pie_plot(data_train, i, 1, 2)
+
+# Process and split dataset
+
+if (use_single_dataset): 
+    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
+    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
+    
+    scaled_train = preprocess(data_train, obj_cols)
+
+    x = scaled_train.drop(label_name_map , axis = 1).values
+    y = scaled_train[label_name_map].values
+
+    pca = PCA(n_components=20)
+    pca = pca.fit(x)
+    x_reduced = pca.transform(x)
+    printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
+
+    y = y.astype('int')
+    if (use_kfold):
+        # Assume X and y are your features and labels
+        kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+        for train_index, test_index in kf.split(x):
+            x_train, x_test = x[train_index], x[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+
+            run_models(x_train, y_train, x_test, y_test)
+    else:
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
+        x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
+
+        run_models(x_train, y_train, x_test, y_test)
+        run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+
+else:
+    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
+    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
+
+    data_test.loc[data_test[label_name_map] == label_value_map, label_name_map] = 0
+    data_test.loc[data_test[label_name_map] != 0, label_name_map] = 1
+    # Process training set
+    
+    scaled_train = preprocess(data_train, obj_cols)
+    x_train = scaled_train.drop(label_name_map, axis=1).values
+    y_train = scaled_train[label_name_map].values
+    y_train = y_train.astype('int')
+
+    pca_train = PCA(n_components=20)
+    x_train_reduced = pca_train.fit_transform(x_train)
+    y_train_reduced = y_train
+
+    # Process testing set
+    scaled_test = preprocess(data_test, obj_cols)
+    x_test = scaled_test.drop(label_name_map, axis=1).values
+    y_test = scaled_test[label_name_map].values
+    y_test = y_test.astype('int')
+
+    pca_test = PCA(n_components=20)
+    x_test_reduced = pca_test.fit_transform(x_test)
+    y_test_reduced = y_test
+
+    printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
+    printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
+
+    run_models(x_train, y_train, x_test, y_test)
+    run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+
+kernal_evals = dict()
 log.close()
 print(f"[{get_ts()}] End of program")
