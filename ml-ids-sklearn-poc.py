@@ -28,14 +28,14 @@ warnings.filterwarnings('ignore')
 
 ###--------SETTINGS--------###
 display_results = False
-generate_statistics_pie = True
+generate_statistics_pie = False
 # Available options:
 # UNSW-NB15
 # NSL-KDD
 # CICIDS2017
 # Set the dataset name
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15-json"
+output_dir = "./output/UNSW-NB15-temp"
 load_saved_models = True
 save_trained_models =  not load_saved_models
 model_save_path = "./Saved models"
@@ -46,16 +46,16 @@ model_save_version = "v0.1 Split"
 
 # Models to evaluate
 bool_lr         = True
-bool_knn        = True
-bool_gnb        = True
-bool_lin_svc    = True
-bool_dt         = True
-bool_xgb        = True
-bool_rf         = True
-bool_dnn        = True
+bool_knn        = False
+bool_gnb        = False
+bool_lin_svc    = False
+bool_dt         = False
+bool_xgb        = False
+bool_rf         = False
+bool_dnn        = False
 
 # Preprocessing settings
-use_kfold = True
+use_kfold = False
 use_single_dataset = True # Use a single dataset and splits it into test and train sets
 split_train_ratio = 0.6 # Train size
 split_test_ratio = 1 - split_train_ratio
@@ -412,9 +412,9 @@ if (read_cols_from_csv):
     # Removes white spaces
     columns = pd.read_csv(train_path).columns.str.strip().tolist()
 
-# Assign names for columns
-data_train.columns = columns
-data_test.columns = columns
+    # Assign names for columns
+    data_train.columns = columns
+    data_test.columns = columns
 data_train.info()
 data_test.info()
 # data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
