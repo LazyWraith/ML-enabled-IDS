@@ -29,14 +29,14 @@ warnings.filterwarnings('ignore')
 with open('settings.json', 'r') as json_file:
     settings = json.load(json_file)
 
-display_results = settings.get('display_results', False)
+display_results = settings.get('display_results')
 generate_statistics_pie = settings.get('generate_statistics_pie', True)
 dataset_name = settings.get('dataset_name', 'UNSW-NB15')
-output_dir = settings.get('output_dir', './output/UNSW-NB15-kfold')
+output_dir = settings.get('output_dir')
 load_saved_models = settings.get('load_saved_models', True)
 save_trained_models = not load_saved_models
 model_save_path = settings.get('model_save_path', './Saved models')
-model_save_version = settings.get('model_save_version', 'v0.1 Split')
+model_save_version = settings.get('model_save_version')
 
 bool_lr = settings.get('bool_lr', True)
 bool_knn = settings.get('bool_knn', True)
