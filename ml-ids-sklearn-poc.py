@@ -26,40 +26,32 @@ start_ts = time.time()
 pd.set_option('display.max_columns', None)
 warnings.filterwarnings('ignore')
 
-###--------SETTINGS--------###
-display_results = False
-generate_statistics_pie = False
-# Available options:
-# UNSW-NB15
-# NSL-KDD
-# CICIDS2017
-# Set the dataset name
-dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15-kfold"
-load_saved_models = True
-save_trained_models =  not load_saved_models
-model_save_path = "./Saved models"
+with open('settings.json', 'r') as json_file:
+    settings = json.load(json_file)
 
-# Split: Splits train model into 60:40 sets
-# Exclusive: trains with training set and tests with testing set exclusively
-model_save_version = "v0.1 Split"
+display_results = settings.get('display_results', False)
+generate_statistics_pie = settings.get('generate_statistics_pie', True)
+dataset_name = settings.get('dataset_name', 'UNSW-NB15')
+output_dir = settings.get('output_dir', './output/UNSW-NB15-kfold')
+load_saved_models = settings.get('load_saved_models', True)
+save_trained_models = not load_saved_models
+model_save_path = settings.get('model_save_path', './Saved models')
+model_save_version = settings.get('model_save_version', 'v0.1 Split')
 
-# Models to evaluate
-bool_lr         = True
-bool_knn        = False
-bool_gnb        = False
-bool_lin_svc    = False
-bool_dt         = False
-bool_xgb        = False
-bool_rf         = False
-bool_dnn        = False
+bool_lr = settings.get('bool_lr', True)
+bool_knn = settings.get('bool_knn', True)
+bool_gnb = settings.get('bool_gnb', True)
+bool_lin_svc = settings.get('bool_lin_svc', True)
+bool_dt = settings.get('bool_dt', True)
+bool_xgb = settings.get('bool_xgb', True)
+bool_rf = settings.get('bool_rf', True)
+bool_dnn = settings.get('bool_dnn', True)
 
-# Preprocessing settings
-use_kfold = True
-use_single_dataset = True # Use a single dataset and splits it into test and train sets
-split_train_ratio = 0.6 # Train size
+use_kfold = settings.get('use_kfold', True)
+use_single_dataset = settings.get('use_single_dataset', True)
+split_train_ratio = settings.get('split_train_ratio', 0.6)
 split_test_ratio = 1 - split_train_ratio
-rndm_state = 42
+rndm_state = settings.get('rndm_state', 42)
 
 filename_counter = 0
 
