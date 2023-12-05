@@ -1,0 +1,23 @@
+{
+  "display_results": false,
+  "generate_statistics_pie": true,
+  "dataset_name": "UNSW-NB15",
+  "output_dir": "./output/UNSW-NB15-kfold",
+  "load_saved_models": true,
+  "save_trained_models": false,
+  "model_save_path": "./Saved models",
+  "model_save_version": "v0.1 Split",
+  "bool_lr": true,
+  "bool_knn": true,
+  "bool_gnb": true,
+  "bool_lin_svc": true,
+  "bool_dt": true,
+  "bool_xgb": true,
+  "bool_rf": true,
+  "bool_dnn": true,
+  "use_kfold": true,
+  "use_single_dataset": true,
+  "split_train_ratio": 0.6,
+  "split_test_ratio": 0.4,
+  "rndm_state": 42
+}
