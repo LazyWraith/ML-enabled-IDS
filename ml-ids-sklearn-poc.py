@@ -35,7 +35,7 @@ generate_statistics_pie = False
 # CICIDS2017
 # Set the dataset name
 dataset_name = "UNSW-NB15"
-output_dir = "./output/UNSW-NB15-temp"
+output_dir = "./output/UNSW-NB15-kfold"
 load_saved_models = True
 save_trained_models =  not load_saved_models
 model_save_path = "./Saved models"
@@ -55,7 +55,7 @@ bool_rf         = False
 bool_dnn        = False
 
 # Preprocessing settings
-use_kfold = False
+use_kfold = True
 use_single_dataset = True # Use a single dataset and splits it into test and train sets
 split_train_ratio = 0.6 # Train size
 split_test_ratio = 1 - split_train_ratio
@@ -127,6 +127,7 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     train_recall = metrics.recall_score(y_train, model.predict(X_train))
     test_recall = metrics.recall_score(y_test, model.predict(X_test))
     
+    kernal_evals = dict()
     kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall]
     
     end_time = time.time()
@@ -347,17 +348,17 @@ def run_dnn(x_train, y_train, x_test, y_test):
     plt.clf()
 
 def run_models(x_train, y_train, x_test, y_test):
-    run_lr(x_train, y_train, x_test, y_test)
-    run_knn(x_train, y_train, x_test, y_test)
-    run_gnb(x_train, y_train, x_test, y_test)
-    run_lin_svc(x_train, y_train, x_test, y_test)
-    run_dt(x_train, y_train, x_test, y_test)
-    run_rf(x_train, y_train, x_test, y_test)
-    run_dnn(x_train, y_train, x_test, y_test)
+    if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
+    if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
+    if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
+    if (bool_lin_svc): run_lin_svc(x_train, y_train, x_test, y_test)
+    if (bool_dt): run_dt(x_train, y_train, x_test, y_test)
+    if (bool_rf): run_rf(x_train, y_train, x_test, y_test)
+    if (bool_dnn): run_dnn(x_train, y_train, x_test, y_test)
 
 def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
-    run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
-    run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    if (bool_rf): run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    if (bool_xgb): run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
     
 # Read dataset configuration from JSON
 with open('dataset-config.json', 'r') as file:
@@ -372,7 +373,9 @@ if dataset_name in datasets_config:
     test_path = config["test_path"]
 
     # Dataset Headers
-    read_cols_from_csv = config.get("read_cols_from_csv", False)
+    read_cols_from_csv = config.get("read_cols_from_csv", True)
+    if (not read_cols_from_csv):
+        columns = config["columns"]
     cat_cols = config["cat_cols"]
     obj_cols = config["obj_cols"]
     drop_cols = config["drop_cols"]
@@ -412,9 +415,9 @@ if (read_cols_from_csv):
     # Removes white spaces
     columns = pd.read_csv(train_path).columns.str.strip().tolist()
 
-    # Assign names for columns
-    data_train.columns = columns
-    data_test.columns = columns
+# Assign names for columns
+data_train.columns = columns
+data_test.columns = columns
 data_train.info()
 data_test.info()
 # data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
@@ -491,6 +494,5 @@ else:
     run_models(x_train, y_train, x_test, y_test)
     run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
-kernal_evals = dict()
 log.close()
 print(f"[{get_ts()}] End of program")
