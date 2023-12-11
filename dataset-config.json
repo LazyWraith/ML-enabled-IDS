@@ -6,8 +6,8 @@
       "cat_cols": ["attack_cat", "label"],
       "obj_cols": ["proto", "service", "state"],
       "drop_cols": ["id"],
-      "label_name_map": "label",
-      "label_value_map": "Normal",
+      "label_header": "label",
+      "label_normal_value": "Normal",
       "pie_stats": [["proto", "service"], ["attack_cat", "label"]]
     },
     "NSL-KDD": {
@@ -18,8 +18,8 @@
       "cat_cols": ["is_host_login", "protocol_type", "service", "flag", "land", "logged_in", "is_guest_login", "level", "outcome"],
       "drop_cols": [],
       "obj_cols": ["protocol_type", "service", "flag"],
-      "label_name_map": "outcome",
-      "label_value_map": "normal",
+      "label_header": "outcome",
+      "label_normal_value": "normal",
       "pie_stats": [["protocol_type", "flag"], ["service", "outcome"]]
     },
     "CICIDS2017": {
@@ -29,8 +29,8 @@
       "cat_cols": ["Label"],
       "drop_cols": ["Flow Bytes/s", "Flow Packets/s", "Init_Win_bytes_forward", "Init_Win_bytes_backward", "Idle Mean", "Idle Std", "Idle Max", "Idle Min", "Fwd Header Length", "Bwd Header Length"],
       "obj_cols": [],
-      "label_name_map": "Label",
-      "label_value_map": "BENIGN",
+      "label_header": "Label",
+      "label_normal_value": "BENIGN",
       "pie_stats": [["Label", "Label"]]
     }
   }

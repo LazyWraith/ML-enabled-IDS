@@ -100,7 +100,7 @@ def preprocess(dataframe, obj_cols_):
     num_cols = df_num.select_dtypes(include=[np.number]).columns
     dataframe = pd.get_dummies(dataframe, columns=obj_cols_)
     df_num = dataframe[num_cols]
-    labels = dataframe[label_name_map]
+    labels = dataframe[label_header]
     std_scaler = RobustScaler()
     std_scaler_temp = std_scaler.fit_transform(df_num)
     std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
@@ -371,8 +371,8 @@ if dataset_name in datasets_config:
     cat_cols = config["cat_cols"]
     obj_cols = config["obj_cols"]
     drop_cols = config["drop_cols"]
-    label_name_map = config["label_name_map"]
-    label_value_map = config["label_value_map"]
+    label_header = config["label_header"]
+    label_normal_value = config["label_normal_value"]
     pie_stats = config["pie_stats"]
     
 else:
@@ -423,13 +423,13 @@ if (generate_statistics_pie):
 # Process and split dataset
 
 if (use_single_dataset): 
-    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
-    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
+    data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+    data_train.loc[data_train[label_header] != 0, label_header] = 1
     
     scaled_train = preprocess(data_train, obj_cols)
 
-    x = scaled_train.drop(label_name_map , axis = 1).values
-    y = scaled_train[label_name_map].values
+    x = scaled_train.drop(label_header , axis = 1).values
+    y = scaled_train[label_header].values
 
     pca = PCA(n_components=20)
     pca = pca.fit(x)
@@ -454,16 +454,16 @@ if (use_single_dataset):
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 else:
-    data_train.loc[data_train[label_name_map] == label_value_map, label_name_map] = 0
-    data_train.loc[data_train[label_name_map] != 0, label_name_map] = 1
+    data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+    data_train.loc[data_train[label_header] != 0, label_header] = 1
 
-    data_test.loc[data_test[label_name_map] == label_value_map, label_name_map] = 0
-    data_test.loc[data_test[label_name_map] != 0, label_name_map] = 1
+    data_test.loc[data_test[label_header] == label_normal_value, label_header] = 0
+    data_test.loc[data_test[label_header] != 0, label_header] = 1
     # Process training set
     
     scaled_train = preprocess(data_train, obj_cols)
-    x_train = scaled_train.drop(label_name_map, axis=1).values
-    y_train = scaled_train[label_name_map].values
+    x_train = scaled_train.drop(label_header, axis=1).values
+    y_train = scaled_train[label_header].values
     y_train = y_train.astype('int')
 
     pca_train = PCA(n_components=20)
@@ -472,8 +472,8 @@ else:
 
     # Process testing set
     scaled_test = preprocess(data_test, obj_cols)
-    x_test = scaled_test.drop(label_name_map, axis=1).values
-    y_test = scaled_test[label_name_map].values
+    x_test = scaled_test.drop(label_header, axis=1).values
+    y_test = scaled_test[label_header].values
     y_test = y_test.astype('int')
 
     pca_test = PCA(n_components=20)
