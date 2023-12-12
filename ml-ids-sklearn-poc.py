@@ -493,8 +493,8 @@ if (generate_statistics_pie):
 # Process and split dataset
 
 if (use_single_dataset): 
-    data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-    data_train.loc[data_train[label_header] != 0, label_header] = 1
+    # data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+    # data_train.loc[data_train[label_header] != 0, label_header] = 1
     
     scaled_train = preprocess(data_train, obj_cols)
     print(scaled_train.columns.tolist())
