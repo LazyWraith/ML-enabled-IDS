@@ -14,6 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
@@ -455,10 +456,11 @@ if (generate_statistics_pie):
 # Process and split dataset
 
 if (use_single_dataset): 
-    data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-    data_train.loc[data_train[label_header] != 0, label_header] = 1
+    # data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+    # data_train.loc[data_train[label_header] != 0, label_header] = 1
     
     scaled_train = preprocess(data_train, obj_cols)
+    print(scaled_train.columns.tolist())
 
     x = scaled_train.drop(label_header , axis = 1).values
     y = scaled_train[label_header].values
@@ -468,7 +470,8 @@ if (use_single_dataset):
     x_reduced = pca.transform(x)
     printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
 
-    y = y.astype('int')
+    y = y.astype('str')
+
     if (use_kfold):
         # Assume X and y are your features and labels
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -481,6 +484,22 @@ if (use_single_dataset):
     else:
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
         x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
+
+        unique_attack_cats = np.unique(y_train)
+
+
+        print("Unique Attack Categories:")
+        for attack_cat in unique_attack_cats:
+            print(attack_cat)
+            
+        # Initialize LabelEncoder
+        label_encoder = LabelEncoder()
+
+        # Fit and transform the training labels
+        y_train_encoded = label_encoder.fit_transform(y_train)
+
+        # Transform the testing labels
+        y_test_encoded = label_encoder.transform(y_test)
 
         run_models(x_train, y_train, x_test, y_test)
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
