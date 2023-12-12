@@ -10,7 +10,7 @@
   "average": "binary",
   "multiclass": false,
   "bool_lr": true,
-  "bool_knn": true,
+  "bool_knn": false,
   "bool_gnb": true,
   "bool_lin_svc": true,
   "bool_dt": true,
