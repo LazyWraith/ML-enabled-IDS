@@ -482,19 +482,8 @@ if (generate_statistics_pie):
 # Process and split dataset
 
 if (use_single_dataset): 
-    if use_multiclass:
-        data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
-        attack_classes = data_train[data_train[label_header] != 0][label_header].unique()
-        for i, attack_class in enumerate(attack_classes, start=1):
-            data_train.loc[data_train[label_header] == attack_class, label_header] = i
-
-        # Print the modified DataFrame
-        print(data_train[label_header].value_counts())
-
-    else:
-        # binary classification
-        data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-        data_train.loc[data_train[label_header] != 0, label_header] = 1
+    data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+    data_train.loc[data_train[label_header] != 0, label_header] = 1
     
     scaled_train = preprocess(data_train, obj_cols)
     print(scaled_train.columns.tolist())
