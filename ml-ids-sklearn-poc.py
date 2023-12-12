@@ -94,6 +94,17 @@ def pie_plot(df, cols_list, rows, cols):
     if (display_results): plt.show()
     plt.clf()
 
+def roc_plot(fpr, tpr, label1 = 'ROC Curve', label2='Random guess', title='ROC curve'):
+    # Plot ROC curve
+    plt.plot(fpr, tpr, label1)
+    plt.plot([0, 1], [0, 1], 'k--', label2)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(title)
+    plt.legend()
+    plt.show()
+    plt.clf()
+
 def preprocess(dataframe, obj_cols_):
     dataframe = dataframe.drop(drop_cols, axis=1)
     df_num = dataframe.drop(cat_cols, axis=1)
