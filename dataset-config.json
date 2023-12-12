@@ -6,7 +6,7 @@
       "cat_cols": ["attack_cat", "label"],
       "obj_cols": ["proto", "service", "state"],
       "drop_cols": ["id"],
-      "label_header": "label",
+      "label_header": "attack_cat",
       "label_normal_value": "Normal",
       "pie_stats": [["proto", "service"], ["attack_cat", "label"]]
     },
