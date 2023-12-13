@@ -94,6 +94,31 @@ def pie_plot(df, cols_list, rows, cols):
     if (display_results): plt.show()
     plt.clf()
 
+def cm_plot(test_predict, name):
+    cm = metrics.confusion_matrix(y_test, test_predict)
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
+    
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.grid(False)
+    cm_display.plot(ax=ax)
+    counter = get_filename_counter()
+    plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
+    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
+    plt.clf()
+
+def roc_plot(fpr, tpr, label1 = 'ROC Curve', label2='Random guess', title=''):
+    # Plot ROC curve
+    plt.plot(fpr, tpr, label=label1)
+    plt.plot([0, 1], [0, 1], 'k--', label=label2)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(title + 'ROC Curve')
+    plt.legend()
+    counter = get_filename_counter()
+    plt.savefig(os.path.join(output_dir, f"{counter}{title}_roc.png"))
+    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{title}_roc.png", flush=True)
+    plt.clf()
+
 def preprocess(dataframe, obj_cols_):
     dataframe = dataframe.drop(drop_cols, axis=1)
     df_num = dataframe.drop(cat_cols, axis=1)
@@ -110,40 +135,42 @@ def preprocess(dataframe, obj_cols_):
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
-    train_accuracy = metrics.accuracy_score(y_train, model.predict(X_train))
-    test_accuracy = metrics.accuracy_score(y_test, model.predict(X_test))
+    train_predict = model.predict(X_train)
+    test_predict = model.predict(X_test)
+
+    train_accuracy = metrics.accuracy_score(y_train, train_predict)
+    test_accuracy = metrics.accuracy_score(y_test, test_predict)
     
-    train_precision = metrics.precision_score(y_train, model.predict(X_train))
-    test_precision = metrics.precision_score(y_test, model.predict(X_test))
+    train_precision = metrics.precision_score(y_train, train_predict)
+    test_precision = metrics.precision_score(y_test, test_predict)
     
-    train_recall = metrics.recall_score(y_train, model.predict(X_train))
-    test_recall = metrics.recall_score(y_test, model.predict(X_test))
-    
+    train_recall = metrics.recall_score(y_train, train_predict)
+    test_recall = metrics.recall_score(y_test, test_predict)
+        
+
     kernal_evals = dict()
     kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall]
     
     end_time = time.time()
     printlog(f"[{get_ts()}] Testing time: {(end_time - start_time):.4f}")
 
-    row1 = f"[{get_ts()}] Generating results...\n"
-    row2 = f"[{get_ts()}] " + "Training Accuracy " + str(name) + " {}  Test Accuracy ".format(train_accuracy*100) + str(name) + " {}".format(test_accuracy*100) + "\n"
-    row3 = f"[{get_ts()}] " + "Training Precesion " + str(name) + " {}  Test Precesion ".format(train_precision*100) + str(name) + " {}".format(test_precision*100) + "\n"
-    row4 = f"[{get_ts()}] " + "Training Recall " + str(name) + " {}  Test Recall ".format(train_recall*100) + str(name) + " {}".format(test_recall*100)
+    row1 = f"[{get_ts()}] Generating results for {name}...\n"
+    row2 = f"[{get_ts()}] Training Accuracy {train_accuracy*100}  Test Accuracy {test_accuracy*100}\n"
+    row3 = f"[{get_ts()}] Training Precesion {train_precision*100}  Test Precesion {test_precision*100}\n"
+    row4 = f"[{get_ts()}] Training Recall {train_recall*100}  Test Recall {test_recall*100}"
 
     printlog(row1 + row2 + row3 + row4)
-    
-    actual = y_test
-    predicted = model.predict(X_test)
-    confusion_matrix = metrics.confusion_matrix(actual, predicted)
-    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=['Normal', 'Attack'])
-    
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.grid(False)
-    cm_display.plot(ax=ax)
-    counter = get_filename_counter()
-    plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
-    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
-    plt.clf()
+    cm_plot(test_predict, name)
+
+    try:
+        # train_predict_proba = model.predict_proba(X_train)
+        test_predict_proba = model.predict_proba(X_test)[:, 1]
+        fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
+        roc_auc = metrics.auc(fpr, tpr)
+        roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
+    except:
+        printlog(f"[{get_ts()}] Failed to create ROC for: {name}!")
+    return train_predict, test_predict
 
 def f_importances(coef, names, top=-1, title="untitled"):
     imp = coef
