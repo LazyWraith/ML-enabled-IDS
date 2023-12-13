@@ -136,7 +136,9 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
     train_predict = model.predict(X_train)
+    # train_predict_proba = model.predict_proba(X_train)
     test_predict = model.predict(X_test)
+    test_predict_proba = model.predict_proba(X_test)
 
     train_accuracy = metrics.accuracy_score(y_train, train_predict)
     test_accuracy = metrics.accuracy_score(y_test, test_predict)
@@ -147,7 +149,7 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     train_recall = metrics.recall_score(y_train, train_predict)
     test_recall = metrics.recall_score(y_test, test_predict)
         
-    fpr, tpr, _ = metrics.roc_curve(y_test, test_predict)
+    fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
     roc_auc = metrics.auc(fpr, tpr)
 
     print(f"False Positive Rate (FPR): {fpr}")
