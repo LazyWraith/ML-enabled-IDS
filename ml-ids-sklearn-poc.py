@@ -94,15 +94,29 @@ def pie_plot(df, cols_list, rows, cols):
     if (display_results): plt.show()
     plt.clf()
 
-def roc_plot(fpr, tpr, label1 = 'ROC Curve', label2='Random guess', title='ROC curve'):
+def cm_plot(test_predict, name):
+    cm = metrics.confusion_matrix(y_test, test_predict)
+    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
+    
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.grid(False)
+    cm_display.plot(ax=ax)
+    counter = get_filename_counter()
+    plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
+    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
+    plt.clf()
+
+def roc_plot(fpr, tpr, label1 = 'ROC Curve', label2='Random guess', title=''):
     # Plot ROC curve
-    plt.plot(fpr, tpr, label1)
-    plt.plot([0, 1], [0, 1], 'k--', label2)
+    plt.plot(fpr, tpr, label=label1)
+    plt.plot([0, 1], [0, 1], 'k--', label=label2)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title(title)
+    plt.title(title + 'ROC Curve')
     plt.legend()
-    plt.show()
+    counter = get_filename_counter()
+    plt.savefig(os.path.join(output_dir, f"{counter}{title}_roc.png"))
+    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{title}_roc.png", flush=True)
     plt.clf()
 
 def preprocess(dataframe, obj_cols_):
@@ -121,15 +135,25 @@ def preprocess(dataframe, obj_cols_):
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
-    train_accuracy = metrics.accuracy_score(y_train, model.predict(X_train))
-    test_accuracy = metrics.accuracy_score(y_test, model.predict(X_test))
+    train_predict = model.predict(X_train)
+    test_predict = model.predict(X_test)
+
+    train_accuracy = metrics.accuracy_score(y_train, train_predict)
+    test_accuracy = metrics.accuracy_score(y_test, test_predict)
     
-    train_precision = metrics.precision_score(y_train, model.predict(X_train))
-    test_precision = metrics.precision_score(y_test, model.predict(X_test))
+    train_precision = metrics.precision_score(y_train, train_predict)
+    test_precision = metrics.precision_score(y_test, test_predict)
     
-    train_recall = metrics.recall_score(y_train, model.predict(X_train))
-    test_recall = metrics.recall_score(y_test, model.predict(X_test))
-    
+    train_recall = metrics.recall_score(y_train, train_predict)
+    test_recall = metrics.recall_score(y_test, test_predict)
+        
+    fpr, tpr, _ = metrics.roc_curve(y_test, test_predict)
+    roc_auc = metrics.auc(fpr, tpr)
+
+    print(f"False Positive Rate (FPR): {fpr}")
+    print(f"True Positive Rate (TPR): {tpr}")
+    print(f"AUC: {roc_auc}")
+
     kernal_evals = dict()
     kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall]
     
@@ -142,19 +166,9 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     row4 = f"[{get_ts()}] " + "Training Recall " + str(name) + " {}  Test Recall ".format(train_recall*100) + str(name) + " {}".format(test_recall*100)
 
     printlog(row1 + row2 + row3 + row4)
-    
-    actual = y_test
-    predicted = model.predict(X_test)
-    confusion_matrix = metrics.confusion_matrix(actual, predicted)
-    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=['Normal', 'Attack'])
-    
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.grid(False)
-    cm_display.plot(ax=ax)
-    counter = get_filename_counter()
-    plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
-    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
-    plt.clf()
+    cm_plot(test_predict, name)
+    roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
+    return train_predict, test_predict
 
 def f_importances(coef, names, top=-1, title="untitled"):
     imp = coef
