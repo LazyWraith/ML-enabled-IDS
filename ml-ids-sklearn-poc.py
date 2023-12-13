@@ -256,7 +256,7 @@ def run_dt(x_train, y_train, x_test, y_test):
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(tdt, "DecisionTreeClassifier", x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(tdt, file_name)
-    features_names = data_train.drop(['label'], axis=1)
+    features_names = data_train.drop(label_header, axis=1)
     f_importances(abs(tdt.feature_importances_), features_names, top=18, title="Decision Tree")
 
     print(f"[{get_ts()}] Generating results...", flush=True)
@@ -278,7 +278,7 @@ def run_rf(x_train, y_train, x_test, y_test):
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(rf, "RandomForestClassifier", x_train, x_test, y_train, y_test)
-    features_names = data_train.drop(['label'], axis=1)
+    features_names = data_train.drop(label_header, axis=1)
     f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
     if save_trained_models: save_model(rf, file_name)
     
@@ -401,6 +401,7 @@ if dataset_name in datasets_config:
     label_header = config["label_header"]
     label_normal_value = config["label_normal_value"]
     pie_stats = config["pie_stats"]
+    feature_reduced_number = config['feature_reduced_number']
     
 else:
     print("Invalid dataset name!")
@@ -428,11 +429,15 @@ printlog(f"[{get_ts()}] Reading from {train_path}")
 
 # Read Train and Test dataset
 data_train = pd.read_csv(train_path)
-data_test = pd.read_csv(test_path)
+if not use_single_dataset: 
+    data_test = pd.read_csv(test_path)
+else: 
+    data_test = data_train
+    
 if (read_cols_from_csv): 
     # columns = data_train.columns.tolist()
     # Removes white spaces
-    columns = pd.read_csv(train_path).columns.str.strip().tolist()
+    columns = data_train.columns.str.strip().tolist()
 
 # Assign names for columns
 data_train.columns = columns
@@ -458,7 +463,7 @@ if (use_single_dataset):
     x = scaled_train.drop(label_header , axis = 1).values
     y = scaled_train[label_header].values
 
-    pca = PCA(n_components=20)
+    pca = PCA(n_components=feature_reduced_number)
     pca = pca.fit(x)
     x_reduced = pca.transform(x)
     printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
@@ -493,7 +498,7 @@ else:
     y_train = scaled_train[label_header].values
     y_train = y_train.astype('int')
 
-    pca_train = PCA(n_components=20)
+    pca_train = PCA(n_components=feature_reduced_number)
     x_train_reduced = pca_train.fit_transform(x_train)
     y_train_reduced = y_train
 
@@ -503,7 +508,7 @@ else:
     y_test = scaled_test[label_header].values
     y_test = y_test.astype('int')
 
-    pca_test = PCA(n_components=20)
+    pca_test = PCA(n_components=feature_reduced_number)
     x_test_reduced = pca_test.fit_transform(x_test)
     y_test_reduced = y_test
 
