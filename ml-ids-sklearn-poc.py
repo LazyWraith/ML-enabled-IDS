@@ -136,9 +136,7 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
     train_predict = model.predict(X_train)
-    # train_predict_proba = model.predict_proba(X_train)
     test_predict = model.predict(X_test)
-    test_predict_proba = model.predict_proba(X_test)
 
     train_accuracy = metrics.accuracy_score(y_train, train_predict)
     test_accuracy = metrics.accuracy_score(y_test, test_predict)
@@ -149,12 +147,6 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     train_recall = metrics.recall_score(y_train, train_predict)
     test_recall = metrics.recall_score(y_test, test_predict)
         
-    fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
-    roc_auc = metrics.auc(fpr, tpr)
-
-    print(f"False Positive Rate (FPR): {fpr}")
-    print(f"True Positive Rate (TPR): {tpr}")
-    print(f"AUC: {roc_auc}")
 
     kernal_evals = dict()
     kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall]
@@ -162,14 +154,22 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     end_time = time.time()
     printlog(f"[{get_ts()}] Testing time: {(end_time - start_time):.4f}")
 
-    row1 = f"[{get_ts()}] Generating results...\n"
-    row2 = f"[{get_ts()}] " + "Training Accuracy " + str(name) + " {}  Test Accuracy ".format(train_accuracy*100) + str(name) + " {}".format(test_accuracy*100) + "\n"
-    row3 = f"[{get_ts()}] " + "Training Precesion " + str(name) + " {}  Test Precesion ".format(train_precision*100) + str(name) + " {}".format(test_precision*100) + "\n"
-    row4 = f"[{get_ts()}] " + "Training Recall " + str(name) + " {}  Test Recall ".format(train_recall*100) + str(name) + " {}".format(test_recall*100)
+    row1 = f"[{get_ts()}] Generating results for {name}...\n"
+    row2 = f"[{get_ts()}] Training Accuracy {train_accuracy*100}  Test Accuracy {test_accuracy*100}\n"
+    row3 = f"[{get_ts()}] Training Precesion {train_precision*100}  Test Precesion {test_precision*100}\n"
+    row4 = f"[{get_ts()}] Training Recall {train_recall*100}  Test Recall {test_recall*100}"
 
     printlog(row1 + row2 + row3 + row4)
     cm_plot(test_predict, name)
-    roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
+
+    try:
+        # train_predict_proba = model.predict_proba(X_train)
+        test_predict_proba = model.predict_proba(X_test)[:, 1]
+        fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
+        roc_auc = metrics.auc(fpr, tpr)
+        roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
+    except:
+        printlog(f"[{get_ts()}] Failed to create ROC for: {name}!")
     return train_predict, test_predict
 
 def f_importances(coef, names, top=-1, title="untitled"):
