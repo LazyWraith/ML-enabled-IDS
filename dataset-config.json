@@ -26,7 +26,7 @@
     },
     "CICIDS2017": {
       "train_path": "./input/CICIDS2017/small-CICIDS2017.csv",
-      "test_path": "./input/CICIDS2017/CICIDS2017.csv",
+      "test_path": "./input/CICIDS2017/small-CICIDS2017.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
       "drop_cols": ["Flow Bytes/s", "Flow Packets/s", "Init_Win_bytes_forward", "Init_Win_bytes_backward", "Idle Mean", "Idle Std", "Idle Max", "Idle Min", "Fwd Header Length", "Bwd Header Length"],

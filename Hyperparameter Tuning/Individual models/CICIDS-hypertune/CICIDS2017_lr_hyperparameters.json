@@ -1,0 +1,7 @@
+{
+  "Logistic Regression": {
+    "C": 6.315615006805172,
+    "max_iter": 607,
+    "solver": "liblinear"
+  }
+}

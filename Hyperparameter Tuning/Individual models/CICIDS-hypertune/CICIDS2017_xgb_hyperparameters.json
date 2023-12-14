@@ -1,0 +1,7 @@
+{
+  "XGBoost": {
+    "n_estimators": 189,
+    "max_depth": 8,
+    "learning_rate": 0.09208109630933109
+  }
+}
