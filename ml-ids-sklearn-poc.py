@@ -170,13 +170,31 @@ def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
     print(f"Metrics saved to {filepath}")
 
 
-def balancing(x, y, index, target):
-    print(pd.Series(y).value_counts())
-    smote=SMOTE(n_jobs=-1,sampling_strategy={index:target})
-    x, y = smote.fit_resample(x, y)
-    result = pd.Series(y).value_counts()
-    printlog(result)
-    return x, y
+def balancing(X_train, y_train, index, target):
+    # smote=SMOTE(n_jobs=-1,sampling_strategy={index:target})
+    # x, y = smote.fit_resample(x, y)
+    # result = pd.Series(y).value_counts()
+    # printlog(result)
+
+    # Calculate the current class distribution
+    class_distribution_before = Counter(y_train)
+    print("Class distribution before SMOTE:", class_distribution_before)
+
+    # Determine the target count based on the maximum count in the original class distribution
+    target_count = max(class_distribution_before.values())
+    
+    # Initialize SMOTE with desired sampling strategy for each minority class
+    sampling_strategy = {label: target_count - count for label, count in class_distribution_before.items() if count < target_count}
+    smote = SMOTE(sampling_strategy=sampling_strategy, n_jobs=-1)
+
+    # Apply SMOTE to oversample the minority classes
+    X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
+    # Calculate the class distribution after SMOTE
+    class_distribution_after = Counter(y_train_resampled)
+    print("Class distribution after SMOTE:", class_distribution_after)
+
+    return X_train_resampled, y_train_resampled
 
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
