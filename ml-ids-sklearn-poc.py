@@ -1,3 +1,4 @@
+from collections import Counter
 import os
 import numpy as np
 import pandas as pd
@@ -19,6 +20,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn import svm
 from sklearn import metrics
+from imblearn.over_sampling import SMOTE
 import pickle
 import json
 import time
@@ -131,6 +133,32 @@ def preprocess(dataframe, obj_cols_):
     std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
     dataframe = pd.concat([std_df, labels], axis=1)
     return dataframe
+
+def balancing(X_train, y_train, index, target):
+    # smote=SMOTE(n_jobs=-1,sampling_strategy={index:target})
+    # x, y = smote.fit_resample(x, y)
+    # result = pd.Series(y).value_counts()
+    # printlog(result)
+
+    # Calculate the current class distribution
+    class_distribution_before = Counter(y_train)
+    print("Class distribution before SMOTE:", class_distribution_before)
+
+    # Determine the target count based on the maximum count in the original class distribution
+    target_count = max(class_distribution_before.values())
+    
+    # Initialize SMOTE with desired sampling strategy for each minority class
+    sampling_strategy = {label: target_count - count for label, count in class_distribution_before.items() if count < target_count}
+    smote = SMOTE(sampling_strategy=sampling_strategy, n_jobs=-1)
+
+    # Apply SMOTE to oversample the minority classes
+    X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
+    # Calculate the class distribution after SMOTE
+    class_distribution_after = Counter(y_train_resampled)
+    print("Class distribution after SMOTE:", class_distribution_after)
+
+    return X_train_resampled, y_train_resampled
 
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
@@ -367,6 +395,7 @@ def run_dnn(x_train, y_train, x_test, y_test):
     plt.clf()
 
 def run_models(x_train, y_train, x_test, y_test):
+    x_train, y_train = balancing(x_train, y_train, 4, 1500)
     if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
     if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
