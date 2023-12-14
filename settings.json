@@ -2,7 +2,7 @@
   "display_results": false,
   "generate_statistics_pie": true,
   "dataset_name": "CICIDS2017",
-  "output_dir": "./output/CICIDS2017-training",
+  "output_dir": "./output/CICIDS2017-training-h",
   "load_saved_models": false,
   "save_trained_models": true,
   "model_save_path": "./Saved models/CICIDS2017",

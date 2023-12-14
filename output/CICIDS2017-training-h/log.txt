@@ -1,0 +1,76 @@
+[000.0010] Init complete!
+[000.0010] Reading from ./input/CICIDS2017/small-CICIDS2017.csv
+[000.9856] Mapping outcomes...
+[004.1118] Number of original features is 68 and of reduced features is 40
+[004.2838] Preparing Logistic Regression
+[017.2909] Training time: 13.0071
+[017.2919] Evaluating classifier: Logistic Regression...
+[017.4335] Testing time: 0.1416
+[017.4345] Generating results for Logistic Regression...
+[017.4345] Training Accuracy 81.3512212070048  Test Accuracy 81.06058758990613
+[017.4345] Training Precesion 80.57025067389331  Test Precesion 80.61805835299533
+[017.4345] Training Recall 76.55663607724969  Test Recall 76.0986474007279
+[017.7931] Saving model to ./Saved models/CICIDS2017\v0.2 Logistic Regression - CICIDS2017.pkl
+[017.7941] Preparing KNeighborsClassifier
+[017.8141] Training time: 0.0200
+[017.8141] Evaluating classifier: KNeighborsClassifier...
+[058.1774] Testing time: 40.3633
+[058.1774] Generating results for KNeighborsClassifier...
+[058.1774] Training Accuracy 99.07533265471568  Test Accuracy 98.47372912349141
+[058.1774] Training Precesion 98.75874674341522  Test Precesion 97.95588155978642
+[058.1774] Training Recall 99.16860704013149  Test Recall 98.65826497908631
+[066.6604] Saving model to ./Saved models/CICIDS2017\v0.2 KNeighborsClassifier - CICIDS2017.pkl
+[067.2130] Preparing GaussianNB
+[067.3363] Training time: 0.1223
+[067.3373] Evaluating classifier: GaussianNB...
+[067.6294] Testing time: 0.2920
+[067.6303] Generating results for GaussianNB...
+[067.6303] Training Accuracy 76.8942880305256  Test Accuracy 76.90844812873338
+[067.6303] Training Precesion 66.46435841392831  Test Precesion 66.68408870305383
+[067.6303] Training Recall 97.04561019038488  Test Recall 97.02862730186322
+[068.0106] Saving model to ./Saved models/CICIDS2017\v0.2 GaussianNB - CICIDS2017.pkl
+[068.0116] Preparing Linear SVC(LBasedImpl)
+[101.0103] Training time: 32.9986
+[101.0103] Evaluating classifier: Linear SVC(LBasedImpl)...
+[101.1491] Testing time: 0.1378
+[101.1501] Generating results for Linear SVC(LBasedImpl)...
+[101.1501] Training Accuracy 85.4271938753741  Test Accuracy 85.28830915518712
+[101.1501] Training Precesion 79.92783480020479  Test Precesion 79.89274844195371
+[101.1501] Training Recall 89.8068757704424  Test Recall 89.83106089412787
+[101.3693] Failed to create ROC for: Linear SVC(LBasedImpl)!
+[101.3693] Saving model to ./Saved models/CICIDS2017\v0.2 Linear SVC(LBasedImpl) - CICIDS2017.pkl
+[101.3703] Preparing Decision Tree
+[112.6890] Training time: 11.3187
+[112.6890] Evaluating classifier: DecisionTreeClassifier...
+[112.8510] Testing time: 0.1620
+[112.8510] Generating results for DecisionTreeClassifier...
+[112.8510] Training Accuracy 99.79763377809203  Test Accuracy 99.53675484578812
+[112.8510] Training Precesion 99.67601706036746  Test Precesion 99.35525816763288
+[112.8510] Training Recall 99.86988083824133  Test Recall 99.6143190830572
+[113.1970] Saving model to ./Saved models/CICIDS2017\v0.2 DecisionTreeClassifier - CICIDS2017.pkl
+[125.5610] Preparing RandomForest
+[338.9870] Training time: 213.4250
+[338.9870] Evaluating classifier: RandomForestClassifier...
+[340.3953] Testing time: 1.4083
+[340.3953] Generating results for RandomForestClassifier...
+[340.3953] Training Accuracy 99.67938363637472  Test Accuracy 99.60014628794343
+[340.3953] Training Precesion 99.50957624108631  Test Precesion 99.46857545686242
+[340.3953] Training Recall 99.77126421038214  Test Recall 99.64147971101092
+[341.2970] Saving model to ./Saved models/CICIDS2017\v0.2 RandomForestClassifier - CICIDS2017.pkl
+[341.3100] Preparing DNN
+[1025.5594] Training time: 684.2494
+Test Loss: 3.2427, Test Accuracy: 0.7877
+[1027.7233] Saving model to ./Saved models/CICIDS2017\v0.2 Deep Neural Network - CICIDS2017.pkl
+[1030.5404] Preparing Reduced Random Forest
+[1775.9421] Training time: 745.4006
+[1775.9431] Evaluating classifier: Reduced RandomForest...
+[1777.3818] Testing time: 1.4387
+[1777.3818] Generating results for Reduced RandomForest...
+[1777.3818] Training Accuracy 99.60745829244357  Test Accuracy 99.4538583445081
+[1777.3818] Training Precesion 99.43032786885246  Test Precesion 99.33799989147539
+[1777.3818] Training Recall 99.68908368716615  Test Recall 99.44592318974415
+[1777.9825] Saving model to ./Saved models/CICIDS2017\v0.2 Reduced RandomForest - CICIDS2017.pkl
+[1777.9906] Preparing XGBoost
+[1780.9721] Training time: 2.9815
+[1781.2411] Training Error XGBOOST 0.04468563203403696  Test error XGBOOST 0.06175972089602027
+[1781.2421] Saving model to ./Saved models/CICIDS2017\v0.2 XGBoost - CICIDS2017.pkl
