@@ -1,0 +1,40 @@
+{
+    "UNSW-NB15": {
+      "train_path": "./input/UNSW_NB15/UNSW_NB15_training-set.csv",
+      "test_path": "./input/UNSW_NB15/UNSW_NB15_testing-set.csv",
+      "read_cols_from_csv": true,
+      "cat_cols": ["attack_cat", "label"],
+      "obj_cols": ["proto", "service", "state"],
+      "drop_cols": ["id"],
+      "label_header": "label",
+      "label_normal_value": "Normal",
+      "pie_stats": [["proto", "service"], ["attack_cat", "label"]],
+      "feature_reduced_number": 20
+    },
+    "NSL-KDD": {
+      "train_path": "./input/nsl-kdd/KDDTrain+.txt",
+      "test_path": "./input/nsl-kdd/KDDTest+.txt",
+      "read_cols_from_csv": false,
+      "columns": ["duration", "protocol_type", "service", "flag", "src_bytes", "dst_bytes", "land", "wrong_fragment", "urgent", "hot", "num_failed_logins", "logged_in", "num_compromised", "root_shell", "su_attempted", "num_root", "num_file_creations", "num_shells", "num_access_files", "num_outbound_cmds", "is_host_login", "is_guest_login", "count", "srv_count", "serror_rate", "srv_serror_rate", "rerror_rate", "srv_rerror_rate", "same_srv_rate", "diff_srv_rate", "srv_diff_host_rate", "dst_host_count", "dst_host_srv_count", "dst_host_same_srv_rate", "dst_host_diff_srv_rate", "dst_host_same_src_port_rate", "dst_host_srv_diff_host_rate", "dst_host_serror_rate", "dst_host_srv_serror_rate", "dst_host_rerror_rate", "dst_host_srv_rerror_rate", "outcome", "level"],
+      "cat_cols": ["is_host_login", "protocol_type", "service", "flag", "land", "logged_in", "is_guest_login", "level", "outcome"],
+      "drop_cols": [],
+      "obj_cols": ["protocol_type", "service", "flag"],
+      "label_header": "outcome",
+      "label_normal_value": "normal",
+      "pie_stats": [["protocol_type", "flag"], ["service", "outcome"]],
+      "feature_reduced_number": 20
+    },
+    "CICIDS2017": {
+      "train_path": "./input/CICIDS2017/small-CICIDS2017.csv",
+      "test_path": "./input/CICIDS2017/CICIDS2017.csv",
+      "read_cols_from_csv": true,
+      "cat_cols": ["Label"],
+      "drop_cols": ["Flow Bytes/s", "Flow Packets/s", "Init_Win_bytes_forward", "Init_Win_bytes_backward", "Idle Mean", "Idle Std", "Idle Max", "Idle Min", "Fwd Header Length", "Bwd Header Length"],
+      "obj_cols": [],
+      "label_header": "Label",
+      "label_normal_value": "BENIGN",
+      "pie_stats": [["Label", "Label"]],
+      "feature_reduced_number": 40
+    }
+  }
+  

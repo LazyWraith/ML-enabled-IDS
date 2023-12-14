@@ -1,78 +1,89 @@
-import json
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import RobustScaler
 import xgboost as xgb
-from sklearn import svm
+from pathlib import Path
 from sklearn.decomposition import PCA
+from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import RobustScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn import svm
 from sklearn import metrics
-from pathlib import Path
+import json
 import optuna
 
-output_dir = "./UNSW-NB15-hypertune"
-train_path = "../../input/UNSW_NB15/UNSW_NB15_training-set.csv"
-test_path = "../../input/UNSW_NB15/UNSW_NB15_testing-set.csv"
+with open('../settings.json', 'r') as json_file:
+    settings = json.load(json_file)
+
+dataset_name = settings.get('dataset_name')
+split_train_ratio = settings.get('split_train_ratio')
+split_test_ratio = 1 - split_train_ratio
+rndm_state = settings.get('rndm_state')
+
+output_dir = "./CICIDS-hypertune"
+train_path = "../small-CICIDS2017.csv"
+test_path = "../small-CICIDS2017.csv"
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 # Read Train and Test datasets
 data_train = pd.read_csv(train_path)
-data_test = pd.read_csv(test_path)
+data_train.columns = data_train.columns.str.strip().tolist()
 
-columns = (['id', 'dur', 'proto', 'service', 'state', 'spkts', 'dpkts', 'sbytes', 'dbytes', 'rate', 'sttl', 'dttl', 'sload', 'dload', 'sloss', 'dloss', 'sinpkt', 'dinpkt', 'sjit', 'djit', 'swin', 'stcpb', 'dtcpb', 'dwin', 'tcprtt', 'synack', 'ackdat', 'smean', 'dmean', 'trans_depth', 'response_body_len', 'ct_srv_src', 'ct_state_ttl', 'ct_dst_ltm', 'ct_src_dport_ltm', 'ct_dst_sport_ltm', 'ct_dst_src_ltm', 'is_ftp_login', 'ct_ftp_cmd', 'ct_flw_http_mthd', 'ct_src_ltm', 'ct_srv_dst', 'is_sm_ips_ports', 'attack_cat', 'label'])
+# Read dataset configuration from JSON
+with open('../dataset-config.json', 'r') as file:
+    datasets_config = json.load(file)
 
-data_train.columns = columns
-data_test.columns = columns
+# Check if the dataset name is valid
+if dataset_name in datasets_config:
+    config = datasets_config[dataset_name]
 
-print("Mapping outcomes...", flush=True)
-data_train.loc[data_train['label'] == "Normal", "label"] = 0
-data_train.loc[data_train['label'] != 0, "label"] = 1
+    # Dataset Path
+    train_path = config["train_path"]
+    test_path = config["test_path"]
 
-data_test.loc[data_test['label'] == "Normal", "label"] = 0
-data_test.loc[data_test['label'] != 0, "label"] = 1
+    # Dataset Headers
+    read_cols_from_csv = config.get("read_cols_from_csv", True)
+    if (not read_cols_from_csv):
+        columns = config["columns"]
+    cat_cols = config["cat_cols"]
+    obj_cols = config["obj_cols"]
+    drop_cols = config["drop_cols"]
+    label_header = config["label_header"]
+    label_normal_value = config["label_normal_value"]
+    pie_stats = config["pie_stats"]
+    feature_reduced_number = config['feature_reduced_number']
+    
+else:
+    print("Invalid dataset name!")
 
-def Scaling(df_num, cols):
-    std_scaler = RobustScaler()
-    std_scaler_temp = std_scaler.fit_transform(df_num)
-    std_df = pd.DataFrame(std_scaler_temp, columns=cols)
-    return std_df
-
-def preprocess(dataframe):
+def preprocess(dataframe, obj_cols_):
+    dataframe = dataframe.drop(drop_cols, axis=1)
     df_num = dataframe.drop(cat_cols, axis=1)
     num_cols = df_num.select_dtypes(include=[np.number]).columns
-    obj_cols = ['proto', 'service', 'state']
-    dataframe = pd.get_dummies(dataframe, columns=obj_cols)
+    dataframe = pd.get_dummies(dataframe, columns=obj_cols_)
     df_num = dataframe[num_cols]
-    labels = dataframe['label']
+    labels = dataframe[label_header]
     std_scaler = RobustScaler()
     std_scaler_temp = std_scaler.fit_transform(df_num)
     std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
     dataframe = pd.concat([std_df, labels], axis=1)
     return dataframe
 
-cat_cols = ['attack_cat', 'label']
-scaled_train = preprocess(data_train)
-scaled_test = preprocess(data_test)
+print("Mapping outcomes...", flush=True)
+data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+data_train.loc[data_train[label_header] != 0, label_header] = 1
 
-x_train = scaled_train.drop(['label'], axis=1).values
-y_train = scaled_train['label'].values
-
-x_test = scaled_test.drop(['label'], axis=1).values
-y_test = scaled_test['label'].values
-
-y_train = y_train.astype('int')
-y_test = y_test.astype('int')
-
+scaled_train = preprocess(data_train, obj_cols)
+x = scaled_train.drop(label_header , axis = 1).values
+y = scaled_train[label_header].values
+y = y.astype('int')
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
 
 def objective(trial, model_name):
     params = {
-        'var_smoothing': trial.suggest_float('var_smoothing', 9.3e-8, 9.5e-8, log=True),
+        'var_smoothing': trial.suggest_float('var_smoothing', 1e-32, 1e-8, log=True),
     }
     model = GaussianNB(**params)
 
@@ -82,7 +93,7 @@ def objective(trial, model_name):
     return accuracy
 
 study_gnb = optuna.create_study(direction='maximize')
-study_gnb.optimize(lambda trial: objective(trial, "gnb"), n_trials=1000)
+study_gnb.optimize(lambda trial: objective(trial, "gnb"), n_trials=3200)
 best_params_gnb = study_gnb.best_params
 
 print("Best Hyperparameters for GaussianNB:", best_params_gnb)
@@ -91,7 +102,7 @@ best_params = {
     "GaussianNB": best_params_gnb
 }
 
-with open(f"{output_dir}/UNSW-NB15_gnb_hyperparameters.json", "w") as f:
+with open(f"{output_dir}/{dataset_name}_gnb_hyperparameters.json", "w") as f:
     json.dump(best_params, f, indent=2)
 
 print("Saved results'")

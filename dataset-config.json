@@ -8,7 +8,8 @@
       "drop_cols": ["id"],
       "label_header": "label",
       "label_normal_value": "Normal",
-      "pie_stats": [["proto", "service"], ["attack_cat", "label"]]
+      "pie_stats": [["proto", "service"], ["attack_cat", "label"]],
+      "feature_reduced_number": 20
     },
     "NSL-KDD": {
       "train_path": "./input/nsl-kdd/KDDTrain+.txt",
@@ -20,18 +21,20 @@
       "obj_cols": ["protocol_type", "service", "flag"],
       "label_header": "outcome",
       "label_normal_value": "normal",
-      "pie_stats": [["protocol_type", "flag"], ["service", "outcome"]]
+      "pie_stats": [["protocol_type", "flag"], ["service", "outcome"]],
+      "feature_reduced_number": 20
     },
     "CICIDS2017": {
-      "train_path": "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv",
-      "test_path": "./input/CICIDS2017/Tuesday-WorkingHours.pcap_ISCX.csv",
+      "train_path": "./input/CICIDS2017/small-CICIDS2017.csv",
+      "test_path": "./input/CICIDS2017/small-CICIDS2017.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
       "drop_cols": ["Flow Bytes/s", "Flow Packets/s", "Init_Win_bytes_forward", "Init_Win_bytes_backward", "Idle Mean", "Idle Std", "Idle Max", "Idle Min", "Fwd Header Length", "Bwd Header Length"],
       "obj_cols": [],
       "label_header": "Label",
       "label_normal_value": "BENIGN",
-      "pie_stats": [["Label", "Label"]]
+      "pie_stats": [["Label", "Label"]],
+      "feature_reduced_number": 40
     }
   }
   
