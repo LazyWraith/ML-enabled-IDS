@@ -8,7 +8,7 @@
   "model_save_path": "./Saved models/CICIDS2017",
   "model_save_version": "v0.2",
   "average": "binary",
-  "multiclass": true,
+  "multiclass": false,
   "bool_lr": true,
   "bool_knn": false,
   "bool_gnb": true,
