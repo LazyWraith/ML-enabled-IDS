@@ -1,6 +1,7 @@
 import csv
 from collections import Counter
 import os
+import traceback
 import numpy as np
 import pandas as pd
 import warnings
@@ -41,6 +42,7 @@ load_saved_models = settings.get('load_saved_models', True)
 save_trained_models = not load_saved_models
 model_save_path = settings.get('model_save_path', './Saved models')
 model_save_version = settings.get('model_save_version')
+model_save_path = f"{model_save_path}/{model_save_version}"
 eval_average = settings.get('average')
 use_multiclass = settings.get('multiclass')
 
@@ -208,8 +210,10 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
         fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
         roc_auc = metrics.auc(fpr, tpr)
         roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
-    except:
+    except Exception as e:
         printlog(f"[{get_ts()}] Failed to create ROC for: {name}!")
+        # print(e)
+        # traceback.print_exc()
     return train_predict, test_predict
 
 def f_importances(coef, names, top=-1, title="untitled"):
