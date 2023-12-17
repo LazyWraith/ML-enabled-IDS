@@ -1,3 +1,4 @@
+import csv
 from collections import Counter
 import os
 import numpy as np
@@ -40,6 +41,8 @@ load_saved_models = settings.get('load_saved_models', True)
 save_trained_models = not load_saved_models
 model_save_path = settings.get('model_save_path', './Saved models')
 model_save_version = settings.get('model_save_version')
+eval_average = settings.get('average')
+use_multiclass = settings.get('multiclass')
 
 bool_lr = settings.get('bool_lr', True)
 bool_knn = settings.get('bool_knn', True)
@@ -135,6 +138,32 @@ def preprocess(dataframe, obj_cols_):
     dataframe = pd.concat([std_df, labels], axis=1)
     return dataframe
 
+def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
+    """
+    Save evaluation metrics to a CSV file.
+
+    Parameters:
+    - metrics_dict: A dictionary containing evaluation metrics.
+    - csv_file_path: Path to the CSV file (default is 'evaluation_metrics.csv').
+    """
+    with open(filepath, 'w', newline='') as csvfile:
+        # Create a CSV writer object
+        csv_writer = csv.writer(csvfile)
+
+        # Write the header row
+        header = ['Model', 'Train Accuracy', 'Test Accuracy', 'Train Precision', 'Test Precision',
+                  'Train Recall', 'Test Recall', 'Train F1 Score', 'Test F1 Score',
+                  'Train F-Score', 'Test F-Score']
+        csv_writer.writerow(header)
+
+        # Write metrics for each model
+        for model_name, metrics_list in eval_metrics.items():
+            row_data = [model_name] + metrics_list
+            csv_writer.writerow(row_data)
+
+    print(f"Metrics saved to {filepath}")
+
+
 def balancing(x, y, index, target):
     print(pd.Series(y).value_counts())
     smote=SMOTE(n_jobs=-1,sampling_strategy={index:target})
@@ -152,29 +181,25 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     train_accuracy = metrics.accuracy_score(y_train, train_predict)
     test_accuracy = metrics.accuracy_score(y_test, test_predict)
     
-    train_precision = metrics.precision_score(y_train, train_predict)
-    test_precision = metrics.precision_score(y_test, test_predict)
+    train_precision = metrics.precision_score(y_train, train_predict, average=eval_average)
+    test_precision = metrics.precision_score(y_test, test_predict, average=eval_average)
     
-    train_recall = metrics.recall_score(y_train, train_predict)
-    test_recall = metrics.recall_score(y_test, test_predict)
-        
+    train_recall = metrics.recall_score(y_train, train_predict, average=eval_average)
+    test_recall = metrics.recall_score(y_test, test_predict, average=eval_average)
 
-    kernal_evals = dict()
-    kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall]
+    train_f1 = metrics.f1_score(y_train, train_predict, average=eval_average)
+    test_f1 = metrics.f1_score(y_test, test_predict, average=eval_average)
+
+    report = metrics.classification_report(y_test, test_predict)
+    printlog(report)
+    kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall, train_f1, test_f1]
     
     end_time = time.time()
     printlog(f"[{get_ts()}] Testing time: {(end_time - start_time):.4f}")
 
-    row1 = f"[{get_ts()}] Generating results for {name}...\n"
-    row2 = f"[{get_ts()}] Training Accuracy {train_accuracy*100}  Test Accuracy {test_accuracy*100}\n"
-    row3 = f"[{get_ts()}] Training Precesion {train_precision*100}  Test Precesion {test_precision*100}\n"
-    row4 = f"[{get_ts()}] Training Recall {train_recall*100}  Test Recall {test_recall*100}"
-
-    printlog(row1 + row2 + row3 + row4)
     cm_plot(test_predict, name)
 
     try:
-        # train_predict_proba = model.predict_proba(X_train)
         test_predict_proba = model.predict_proba(X_test)[:, 1]
         fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
         roc_auc = metrics.auc(fpr, tpr)
@@ -457,6 +482,7 @@ data_test.columns = columns
 data_train.info()
 data_test.info()
 # data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
+kernal_evals = dict()
 
 printlog(f"[{get_ts()}] Mapping outcomes...")
 
@@ -467,8 +493,19 @@ if (generate_statistics_pie):
 # Process and split dataset
 
 if (use_single_dataset): 
-    # data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-    # data_train.loc[data_train[label_header] != 0, label_header] = 1
+    if use_multiclass:
+        data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
+        attack_classes = data_train[data_train[label_header] != 0][label_header].unique()
+        for i, attack_class in enumerate(attack_classes, start=1):
+            data_train.loc[data_train[label_header] == attack_class, label_header] = i
+
+        # Print the modified DataFrame
+        print(data_train[label_header].value_counts())
+
+    else:
+        # binary classification
+        data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+        data_train.loc[data_train[label_header] != 0, label_header] = 1
     
     scaled_train = preprocess(data_train, obj_cols)
     print(scaled_train.columns.tolist())
@@ -516,11 +553,22 @@ if (use_single_dataset):
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 else:
-    data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-    data_train.loc[data_train[label_header] != 0, label_header] = 1
+    if use_multiclass:
+        data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
+        attack_classes = data_train[data_train[label_header] != 0][label_header].unique()
+        for i, attack_class in enumerate(attack_classes, start=1):
+            data_train.loc[data_train[label_header] == attack_class, label_header] = i
 
-    data_test.loc[data_test[label_header] == label_normal_value, label_header] = 0
-    data_test.loc[data_test[label_header] != 0, label_header] = 1
+        # Print the modified DataFrame
+        print(data_train[label_header].value_counts())
+
+    else:
+        # binary classification
+        data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+        data_train.loc[data_train[label_header] != 0, label_header] = 1
+
+        data_test.loc[data_test[label_header] == label_normal_value, label_header] = 0
+        data_test.loc[data_test[label_header] != 0, label_header] = 1
     # Process training set
     
     scaled_train = preprocess(data_train, obj_cols)
@@ -548,5 +596,7 @@ else:
     run_models(x_train, y_train, x_test, y_test)
     run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
+# Save all metrics to file
+save_metrics_to_csv(kernal_evals)
 log.close()
 print(f"[{get_ts()}] End of program")
