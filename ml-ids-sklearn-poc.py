@@ -102,10 +102,9 @@ def pie_plot(df, cols_list, rows, cols):
 
 def cm_plot(test_predict, name):
     # Combine all non-"Normal" classes into a single "Attack" class
-    if use_multiclass:
         # Flatten CM attack classes into one
-        y_test_combined = np.where(y_test == 0, 0, 1)
-        test_predict_combined = np.where(test_predict == 0, 0, 1)
+    y_test_combined = np.where(y_test == 0, 0, 1)
+    test_predict_combined = np.where(test_predict == 0, 0, 1)
     cm = metrics.confusion_matrix(y_test_combined, test_predict_combined)
     cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
     
@@ -492,7 +491,6 @@ if (use_single_dataset):
     if use_multiclass:
         labelencoder = LabelEncoder()
         data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
-        print(data_train[label_header].value_counts())
 
     else:
         data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
@@ -507,8 +505,9 @@ if (use_single_dataset):
     pca = pca.fit(x)
     x_reduced = pca.transform(x)
     printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
-
+    print(data_train[label_header].value_counts())
     y=np.ravel(y)
+    y = y.astype('int')
 
     if (use_kfold):
         # Assume X and y are your features and labels
