@@ -99,7 +99,12 @@ def pie_plot(df, cols_list, rows, cols):
     plt.clf()
 
 def cm_plot(test_predict, name):
-    cm = metrics.confusion_matrix(y_test, test_predict)
+    # Combine all non-"Normal" classes into a single "Attack" class
+    if use_multiclass:
+        # Flatten CM attack classes into one
+        y_test_combined = np.where(y_test == 0, 0, 1)
+        test_predict_combined = np.where(test_predict == 0, 0, 1)
+    cm = metrics.confusion_matrix(y_test_combined, test_predict_combined)
     cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
     
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -380,17 +385,8 @@ def run_dnn(x_train, y_train, x_test, y_test):
 
     actual = y_test
     # predicted = dnn.predict(x_test)
-    predicted = (dnn.predict(x_test) > 0.5).astype("int32")
-    confusion_matrix = metrics.confusion_matrix(actual, predicted)
-    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=['Normal', 'Attack'])
-    
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.grid(False)
-    cm_display.plot(ax=ax)
-    counter = get_filename_counter()
-    plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
-    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
-    plt.clf()
+    predicted = dnn.predict(x_test)
+    cm_plot(predicted, name)
 
 def run_models(x_train, y_train, x_test, y_test):
     if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
@@ -480,13 +476,18 @@ if (generate_statistics_pie):
         pie_plot(data_train, i, 1, 2)
 
 # Process and split dataset
-
+print(data_train[label_header].value_counts())
 if (use_single_dataset): 
-    # data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-    # data_train.loc[data_train[label_header] != 0, label_header] = 1
+    if use_multiclass:
+        labelencoder = LabelEncoder()
+        data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
+        print(data_train[label_header].value_counts())
+
+    else:
+        data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
+        data_train.loc[data_train[label_header] != 0, label_header] = 1
     
     scaled_train = preprocess(data_train, obj_cols)
-    print(scaled_train.columns.tolist())
 
     x = scaled_train.drop(label_header , axis = 1).values
     y = scaled_train[label_header].values
@@ -496,7 +497,7 @@ if (use_single_dataset):
     x_reduced = pca.transform(x)
     printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
 
-    y = y.astype('str')
+    y=np.ravel(y)
 
     if (use_kfold):
         # Assume X and y are your features and labels
@@ -512,19 +513,9 @@ if (use_single_dataset):
         x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
 
         unique_attack_cats = np.unique(y_train)
-
-
-        print("Unique Attack Categories:")
-        for attack_cat in unique_attack_cats:
-            print(attack_cat)
             
-        # Initialize LabelEncoder
         label_encoder = LabelEncoder()
-
-        # Fit and transform the training labels
         y_train_encoded = label_encoder.fit_transform(y_train)
-
-        # Transform the testing labels
         y_test_encoded = label_encoder.transform(y_test)
 
         run_models(x_train, y_train, x_test, y_test)
