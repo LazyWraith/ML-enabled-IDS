@@ -1,0 +1,111 @@
+[000.0010] Init complete!
+[000.0010] Reading from ./input/CICIDS2017/CICIDS2017.csv
+[012.0235] Mapping outcomes...
+[054.9964] Number of original features is 68 and of reduced features is 40
+[058.9962] Preparing Logistic Regression
+[939.4623] Training time: 880.4661
+[939.4623] Evaluating classifier: Logistic Regression...
+              precision    recall  f1-score   support
+
+           0       0.91      0.91      0.91    454643
+           1       0.63      0.61      0.62    111506
+
+    accuracy                           0.85    566149
+   macro avg       0.77      0.76      0.76    566149
+weighted avg       0.85      0.85      0.85    566149
+
+[942.7586] Testing time: 3.2963
+[943.2709] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary Logistic Regression - CICIDS2017.pkl
+[943.2719] Preparing KNeighborsClassifier
+[943.5409] Training time: 0.2690
+[943.5409] Evaluating classifier: KNeighborsClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00    454643
+           1       0.98      0.99      0.98    111506
+
+    accuracy                           0.99    566149
+   macro avg       0.99      0.99      0.99    566149
+weighted avg       0.99      0.99      0.99    566149
+
+[9283.5075] Testing time: 8339.9666
+[11053.1827] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary KNeighborsClassifier - CICIDS2017.pkl
+[11061.3069] Preparing GaussianNB
+[11063.8535] Training time: 2.5466
+[11063.8535] Evaluating classifier: GaussianNB...
+              precision    recall  f1-score   support
+
+           0       0.99      0.41      0.57    454643
+           1       0.29      0.98      0.44    111506
+
+    accuracy                           0.52    566149
+   macro avg       0.64      0.69      0.51    566149
+weighted avg       0.85      0.52      0.55    566149
+
+[11070.9369] Testing time: 7.0835
+[11072.0486] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary GaussianNB - CICIDS2017.pkl
+[11072.0496] Preparing Linear SVC(LBasedImpl)
+[11842.4519] Training time: 770.4024
+[11842.4519] Evaluating classifier: Linear SVC(LBasedImpl)...
+              precision    recall  f1-score   support
+
+           0       0.94      0.91      0.93    454643
+           1       0.68      0.78      0.73    111506
+
+    accuracy                           0.88    566149
+   macro avg       0.81      0.85      0.83    566149
+weighted avg       0.89      0.88      0.89    566149
+
+[11846.2214] Testing time: 3.7694
+[11846.4596] Failed to create ROC for: Linear SVC(LBasedImpl)!
+[11846.4596] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary Linear SVC(LBasedImpl) - CICIDS2017.pkl
+[11846.4606] Preparing Decision Tree
+[12176.4350] Training time: 329.9744
+[12176.4350] Evaluating classifier: DecisionTreeClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00    454643
+           1       0.99      0.99      0.99    111506
+
+    accuracy                           1.00    566149
+   macro avg       1.00      1.00      1.00    566149
+weighted avg       1.00      1.00      1.00    566149
+
+[12180.5852] Testing time: 4.1502
+[12181.1049] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary DecisionTreeClassifier - CICIDS2017.pkl
+[12194.5754] Preparing RandomForest
+[19082.8717] Training time: 6888.2963
+[19082.8717] Evaluating classifier: RandomForestClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00    454643
+           1       1.00      0.99      0.99    111506
+
+    accuracy                           1.00    566149
+   macro avg       1.00      0.99      1.00    566149
+weighted avg       1.00      1.00      1.00    566149
+
+[19104.7814] Testing time: 21.9087
+[19110.4319] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary RandomForestClassifier - CICIDS2017.pkl
+[19110.5959] Preparing DNN
+[27067.4068] Training time: 7956.8108
+Test Loss: 2.3846, Test Accuracy: 0.8441
+[27083.6906] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary Deep Neural Network - CICIDS2017.pkl
+[27105.2205] Preparing Reduced Random Forest
+[41853.3296] Training time: 14748.1091
+[41853.3296] Evaluating classifier: Reduced RandomForest...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00    454643
+           1       1.00      0.99      0.99    111506
+
+    accuracy                           1.00    566149
+   macro avg       1.00      1.00      1.00    566149
+weighted avg       1.00      1.00      1.00    566149
+
+[41873.8603] Testing time: 20.5307
+[41877.8041] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary Reduced RandomForest - CICIDS2017.pkl
+[41878.0531] Preparing XGBoost
+[41901.9409] Training time: 23.8877
+[41904.7793] Training Error XGBOOST 0.03965901020512006  Test error XGBOOST 0.04077790204254791
+[41904.7803] Saving model to ./Saved models/CICIDS2017/v1.0 binary\v1.0 binary XGBoost - CICIDS2017.pkl
