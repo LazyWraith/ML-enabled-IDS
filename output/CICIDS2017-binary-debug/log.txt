@@ -1,0 +1,81 @@
+[000.0010] Init complete!
+[000.0010] Reading from ./input/CICIDS2017/small-CICIDS2017.csv
+[001.1405] Mapping outcomes...
+[005.0587] Number of original features is 68 and of reduced features is 40
+[005.4465] Loading model from ./Saved models/CICIDS2017\v0.2 Logistic Regression - CICIDS2017.pkl
+[005.4474] Evaluating classifier: Logistic Regression...
+              precision    recall  f1-score   support
+
+           0       0.81      0.85      0.83     22606
+           1       0.81      0.76      0.78     18409
+
+    accuracy                           0.81     41015
+   macro avg       0.81      0.81      0.81     41015
+weighted avg       0.81      0.81      0.81     41015
+
+[005.7287] Testing time: 0.2805
+[006.1071] Loading model from ./Saved models/CICIDS2017\v0.2 GaussianNB - CICIDS2017.pkl
+[006.1080] Evaluating classifier: GaussianNB...
+              precision    recall  f1-score   support
+
+           0       0.96      0.61      0.74     22606
+           1       0.67      0.97      0.79     18409
+
+    accuracy                           0.77     41015
+   macro avg       0.81      0.79      0.77     41015
+weighted avg       0.83      0.77      0.76     41015
+
+[006.6242] Testing time: 0.5162
+[007.0292] Loading model from ./Saved models/CICIDS2017\v0.2 Linear SVC(LBasedImpl) - CICIDS2017.pkl
+[007.0299] Evaluating classifier: Linear SVC(LBasedImpl)...
+              precision    recall  f1-score   support
+
+           0       0.91      0.82      0.86     22606
+           1       0.80      0.90      0.85     18409
+
+    accuracy                           0.85     41015
+   macro avg       0.85      0.86      0.85     41015
+weighted avg       0.86      0.85      0.85     41015
+
+[007.3156] Testing time: 0.2850
+[007.5465] Failed to create ROC for: Linear SVC(LBasedImpl)!
+[007.5476] Loading model from ./Saved models/CICIDS2017\v0.2 DecisionTreeClassifier - CICIDS2017.pkl
+[007.5487] Loading model from ./Saved models/CICIDS2017\v0.2 DecisionTreeClassifier - CICIDS2017.pkl
+[007.5487] Evaluating classifier: DecisionTreeClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      1.00     22606
+           1       0.99      1.00      0.99     18409
+
+    accuracy                           1.00     41015
+   macro avg       1.00      1.00      1.00     41015
+weighted avg       1.00      1.00      1.00     41015
+
+[007.8595] Testing time: 0.3099
+[022.5776] Loading model from ./Saved models/CICIDS2017\v0.2 RandomForestClassifier - CICIDS2017.pkl
+[022.5853] Evaluating classifier: RandomForestClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     22606
+           1       0.99      1.00      1.00     18409
+
+    accuracy                           1.00     41015
+   macro avg       1.00      1.00      1.00     41015
+weighted avg       1.00      1.00      1.00     41015
+
+[024.3769] Testing time: 1.7907
+[025.3473] Loading model from ./Saved models/CICIDS2017\v0.2 Deep Neural Network - CICIDS2017.pkl
+Test Loss: 3.2427, Test Accuracy: 0.7877
+[031.5539] Loading model from ./Saved models/CICIDS2017\v0.2 Reduced RandomForest - CICIDS2017.pkl
+[031.5620] Evaluating classifier: Reduced RandomForest...
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      1.00     22606
+           1       0.99      0.99      0.99     18409
+
+    accuracy                           0.99     41015
+   macro avg       0.99      0.99      0.99     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[033.3484] Testing time: 1.7864
+[034.0521] Loading model from ./Saved models/CICIDS2017\v0.2 XGBoost - CICIDS2017.pkl

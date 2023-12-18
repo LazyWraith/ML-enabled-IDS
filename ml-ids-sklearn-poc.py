@@ -1,5 +1,7 @@
 import csv
+from collections import Counter
 import os
+import traceback
 import numpy as np
 import pandas as pd
 import warnings
@@ -15,11 +17,13 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn import svm
 from sklearn import metrics
+from imblearn.over_sampling import SMOTE
 import pickle
 import json
 import time
@@ -38,6 +42,7 @@ load_saved_models = settings.get('load_saved_models', True)
 save_trained_models = not load_saved_models
 model_save_path = settings.get('model_save_path', './Saved models')
 model_save_version = settings.get('model_save_version')
+model_save_path = f"{model_save_path}/{model_save_version}"
 eval_average = settings.get('average')
 use_multiclass = settings.get('multiclass')
 
@@ -64,6 +69,7 @@ def get_filename_counter():
     return str(filename_counter) + ". "
 
 def printlog(message):
+    message = str(message)
     log.write(message + "\n")
     print(message, flush=True)
 
@@ -98,7 +104,11 @@ def pie_plot(df, cols_list, rows, cols):
     plt.clf()
 
 def cm_plot(test_predict, name):
-    cm = metrics.confusion_matrix(y_test, test_predict)
+    # Combine all non-"Normal" classes into a single "Attack" class
+        # Flatten CM attack classes into one
+    y_test_combined = np.where(y_test == 0, 0, 1)
+    test_predict_combined = np.where(test_predict == 0, 0, 1)
+    cm = metrics.confusion_matrix(y_test_combined, test_predict_combined)
     cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
     
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -161,6 +171,15 @@ def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
     print(f"Metrics saved to {filepath}")
 
 
+def balancing(x_train, y_train, jobs):
+    for data in jobs:
+        smote=SMOTE(n_jobs=-1,sampling_strategy={data[0]:data[1]})
+        x_train, y_train = smote.fit_resample(x_train, y_train)
+    result = pd.Series(y_train).value_counts()
+    printlog(result)
+
+    return x_train, y_train
+
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
@@ -193,8 +212,10 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
         fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
         roc_auc = metrics.auc(fpr, tpr)
         roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
-    except:
+    except Exception as e:
         printlog(f"[{get_ts()}] Failed to create ROC for: {name}!")
+        # print(e)
+        # traceback.print_exc()
     return train_predict, test_predict
 
 def f_importances(coef, names, top=-1, title="untitled"):
@@ -379,19 +400,11 @@ def run_dnn(x_train, y_train, x_test, y_test):
 
     actual = y_test
     # predicted = dnn.predict(x_test)
-    predicted = (dnn.predict(x_test) > 0.5).astype("int32")
-    confusion_matrix = metrics.confusion_matrix(actual, predicted)
-    cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=confusion_matrix, display_labels=['Normal', 'Attack'])
-    
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.grid(False)
-    cm_display.plot(ax=ax)
-    counter = get_filename_counter()
-    plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
-    print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
-    plt.clf()
+    predicted = dnn.predict(x_test)
+    cm_plot(predicted, name)
 
 def run_models(x_train, y_train, x_test, y_test):
+    # x_train, y_train = balancing(x_train, y_train, 4, 1500)
     if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
     if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
@@ -427,6 +440,7 @@ if dataset_name in datasets_config:
     label_normal_value = config["label_normal_value"]
     pie_stats = config["pie_stats"]
     feature_reduced_number = config['feature_reduced_number']
+    resampling_job = config.get('resampling_job')
     
 else:
     print("Invalid dataset name!")
@@ -468,7 +482,7 @@ if (read_cols_from_csv):
 data_train.columns = columns
 data_test.columns = columns
 data_train.info()
-data_test.info()
+if not use_single_dataset: data_test.info()
 # data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
 kernal_evals = dict()
 
@@ -479,19 +493,12 @@ if (generate_statistics_pie):
         pie_plot(data_train, i, 1, 2)
 
 # Process and split dataset
-
 if (use_single_dataset): 
     if use_multiclass:
-        data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
-        attack_classes = data_train[data_train[label_header] != 0][label_header].unique()
-        for i, attack_class in enumerate(attack_classes, start=1):
-            data_train.loc[data_train[label_header] == attack_class, label_header] = i
-
-        # Print the modified DataFrame
-        print(data_train[label_header].value_counts())
+        labelencoder = LabelEncoder()
+        data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
 
     else:
-        # binary classification
         data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
         data_train.loc[data_train[label_header] != 0, label_header] = 1
     
@@ -504,8 +511,10 @@ if (use_single_dataset):
     pca = pca.fit(x)
     x_reduced = pca.transform(x)
     printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
-
+    print(data_train[label_header].value_counts())
+    y=np.ravel(y)
     y = y.astype('int')
+
     if (use_kfold):
         # Assume X and y are your features and labels
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
@@ -519,6 +528,15 @@ if (use_single_dataset):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
         x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
 
+        unique_attack_cats = np.unique(y_train)
+            
+        label_encoder = LabelEncoder()
+        y_train_encoded = label_encoder.fit_transform(y_train)
+        y_test_encoded = label_encoder.transform(y_test)
+
+        # SMOTE
+        if use_multiclass:
+            x_train, y_train = balancing(x_train, y_train, resampling_job)
         run_models(x_train, y_train, x_test, y_test)
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 

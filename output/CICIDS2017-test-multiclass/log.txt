@@ -1,0 +1,201 @@
+[000.1130] Init complete!
+[000.1130] Reading from ./input/CICIDS2017/small-CICIDS2017.csv
+[001.5734] Mapping outcomes...
+[005.1849] Number of original features is 68 and of reduced features is 40
+0     91049
+4     18423
+10    12697
+2     10256
+3      8272
+7      6252
+14     5000
+12     5000
+1      5000
+8      5000
+9      5000
+13     5000
+11     4739
+6      4660
+5      4381
+dtype: int64
+[005.9735] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass Logistic Regression - CICIDS2017.pkl
+[005.9785] Evaluating classifier: Logistic Regression...
+              precision    recall  f1-score   support
+
+           0       0.78      0.87      0.82     22606
+           1       0.00      0.00      0.00       410
+           2       0.75      0.54      0.63      2547
+           3       0.72      0.72      0.72      2021
+           4       0.68      0.80      0.74      4684
+           5       0.26      0.71      0.38      1118
+           6       0.81      0.48      0.60      1136
+           7       0.00      0.00      0.00      1686
+           9       0.00      0.00      0.00        10
+          10       0.00      0.00      0.00      3196
+          11       1.00      0.01      0.02      1158
+          12       0.00      0.00      0.00       301
+          13       0.00      0.00      0.00         6
+          14       0.00      0.00      0.00       136
+
+    accuracy                           0.67     41015
+   macro avg       0.36      0.29      0.28     41015
+weighted avg       0.65      0.67      0.64     41015
+
+[006.2871] Testing time: 0.3086
+[006.5337] Failed to create ROC for: Logistic Regression!
+[006.5347] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass KNeighborsClassifier - CICIDS2017.pkl
+[006.5627] Evaluating classifier: KNeighborsClassifier...
+              precision    recall  f1-score   support
+
+           0       0.99      0.98      0.99     22606
+           1       0.86      0.93      0.89       410
+           2       0.94      0.91      0.93      2547
+           3       0.97      0.98      0.97      2021
+           4       0.96      0.98      0.97      4684
+           5       0.98      0.98      0.98      1118
+           6       0.98      0.98      0.98      1136
+           7       1.00      0.99      1.00      1686
+           9       0.29      0.20      0.24        10
+          10       0.98      0.99      0.98      3196
+          11       0.99      0.99      0.99      1158
+          12       0.72      0.80      0.76       301
+          13       0.00      0.00      0.00         6
+          14       0.46      0.34      0.39       136
+
+    accuracy                           0.98     41015
+   macro avg       0.79      0.79      0.79     41015
+weighted avg       0.98      0.98      0.98     41015
+
+[064.8856] Testing time: 58.3229
+[076.3066] Failed to create ROC for: KNeighborsClassifier!
+[076.3066] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass GaussianNB - CICIDS2017.pkl
+[076.3126] Evaluating classifier: GaussianNB...
+              precision    recall  f1-score   support
+
+           0       1.00      0.26      0.42     22606
+           1       0.08      1.00      0.14       410
+           2       0.89      0.97      0.93      2547
+           3       0.91      0.57      0.70      2021
+           4       0.76      0.70      0.73      4684
+           5       0.07      0.66      0.13      1118
+           6       0.57      0.82      0.67      1136
+           7       0.51      0.99      0.67      1686
+           8       0.00      0.00      0.00         0
+           9       0.04      0.90      0.08        10
+          10       0.90      0.99      0.94      3196
+          11       0.86      0.98      0.92      1158
+          12       0.13      0.04      0.06       301
+          13       0.00      0.33      0.01         6
+          14       0.34      0.93      0.50       136
+
+    accuracy                           0.51     41015
+   macro avg       0.47      0.68      0.46     41015
+weighted avg       0.87      0.51      0.56     41015
+
+[078.5661] Testing time: 2.2535
+[079.1878] Failed to create ROC for: GaussianNB!
+[079.1878] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass Linear SVC(LBasedImpl) - CICIDS2017.pkl
+[079.1928] Evaluating classifier: Linear SVC(LBasedImpl)...
+              precision    recall  f1-score   support
+
+           0       0.83      0.96      0.89     22606
+           1       0.50      0.01      0.01       410
+           2       0.82      0.50      0.62      2547
+           3       0.84      0.63      0.72      2021
+           4       0.82      0.81      0.81      4684
+           5       0.81      0.17      0.29      1118
+           6       0.32      0.28      0.30      1136
+           7       0.95      0.85      0.90      1686
+           9       1.00      0.10      0.18        10
+          10       0.83      0.86      0.85      3196
+          11       0.97      0.74      0.84      1158
+          12       0.69      0.15      0.25       301
+          13       0.00      0.00      0.00         6
+          14       0.00      0.00      0.00       136
+
+    accuracy                           0.82     41015
+   macro avg       0.67      0.43      0.48     41015
+weighted avg       0.81      0.82      0.80     41015
+
+[079.5428] Testing time: 0.3500
+[079.7270] Failed to create ROC for: Linear SVC(LBasedImpl)!
+[079.7270] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass DecisionTreeClassifier - CICIDS2017.pkl
+[079.7350] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass DecisionTreeClassifier - CICIDS2017.pkl
+[079.7360] Evaluating classifier: DecisionTreeClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     22606
+           1       0.89      0.91      0.90       410
+           2       1.00      1.00      1.00      2547
+           3       1.00      1.00      1.00      2021
+           4       0.99      1.00      0.99      4684
+           5       0.99      1.00      0.99      1118
+           6       0.99      0.99      0.99      1136
+           7       1.00      1.00      1.00      1686
+           8       0.00      0.00      0.00         0
+           9       0.78      0.70      0.74        10
+          10       1.00      1.00      1.00      3196
+          11       1.00      1.00      1.00      1158
+          12       0.69      0.95      0.80       301
+          13       0.50      0.17      0.25         6
+          14       0.50      0.07      0.13       136
+
+    accuracy                           0.99     41015
+   macro avg       0.82      0.79      0.79     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[080.0605] Testing time: 0.3246
+[080.2585] Failed to create ROC for: DecisionTreeClassifier!
+[094.1053] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass RandomForestClassifier - CICIDS2017.pkl
+[094.1233] Evaluating classifier: RandomForestClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     22606
+           1       0.92      0.90      0.91       410
+           2       1.00      1.00      1.00      2547
+           3       1.00      1.00      1.00      2021
+           4       0.99      1.00      0.99      4684
+           5       0.99      0.99      0.99      1118
+           6       1.00      0.99      1.00      1136
+           7       1.00      1.00      1.00      1686
+           9       0.90      0.90      0.90        10
+          10       1.00      1.00      1.00      3196
+          11       1.00      1.00      1.00      1158
+          12       0.69      0.98      0.81       301
+          13       0.00      0.00      0.00         6
+          14       0.80      0.06      0.11       136
+
+    accuracy                           0.99     41015
+   macro avg       0.88      0.84      0.84     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[097.0426] Testing time: 2.9193
+[097.6603] Failed to create ROC for: RandomForestClassifier!
+[097.8839] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass Deep Neural Network - CICIDS2017.pkl
+Test Loss: -26.8378, Test Accuracy: 0.4319
+[101.0592] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass Reduced RandomForest - CICIDS2017.pkl
+[101.0812] Evaluating classifier: Reduced RandomForest...
+              precision    recall  f1-score   support
+
+           0       0.99      1.00      0.99     22606
+           1       0.92      0.89      0.90       410
+           2       1.00      1.00      1.00      2547
+           3       1.00      0.99      0.99      2021
+           4       0.99      1.00      0.99      4684
+           5       1.00      0.98      0.99      1118
+           6       1.00      0.99      1.00      1136
+           7       1.00      1.00      1.00      1686
+           9       0.00      0.00      0.00        10
+          10       1.00      1.00      1.00      3196
+          11       1.00      0.98      0.99      1158
+          12       0.70      0.97      0.81       301
+          13       0.00      0.00      0.00         6
+          14       1.00      0.07      0.14       136
+
+    accuracy                           0.99     41015
+   macro avg       0.83      0.78      0.77     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[103.8252] Testing time: 2.7440
+[104.4484] Failed to create ROC for: Reduced RandomForest!
+[104.4494] Loading model from ./Saved models/CICIDS2017/v1.1 multiclass\v1.1 multiclass XGBoost - CICIDS2017.pkl
