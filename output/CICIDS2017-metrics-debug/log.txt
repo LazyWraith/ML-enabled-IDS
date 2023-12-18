@@ -1,0 +1,175 @@
+[000.0050] Init complete!
+[000.0050] Reading from ./input/CICIDS2017/small-CICIDS2017.csv
+[001.2243] Mapping outcomes...
+[005.0401] Number of original features is 68 and of reduced features is 40
+[005.4335] Preparing Logistic Regression
+[661.1144] Training time: 655.6798
+[661.1152] Evaluating classifier: Logistic Regression...
+              precision    recall  f1-score   support
+
+           0       0.78      0.87      0.82     22606
+           1       0.00      0.00      0.00       410
+           2       0.75      0.54      0.63      2547
+           3       0.72      0.72      0.72      2021
+           4       0.68      0.80      0.74      4684
+           5       0.26      0.71      0.38      1118
+           6       0.81      0.48      0.60      1136
+           7       0.00      0.00      0.00      1686
+           9       0.00      0.00      0.00        10
+          10       0.00      0.00      0.00      3196
+          11       1.00      0.01      0.02      1158
+          12       0.00      0.00      0.00       301
+          13       0.00      0.00      0.00         6
+          14       0.00      0.00      0.00       136
+
+    accuracy                           0.67     41015
+   macro avg       0.36      0.29      0.28     41015
+weighted avg       0.65      0.67      0.64     41015
+
+[661.4721] Testing time: 0.3563
+[661.7688] Failed to create ROC for: Logistic Regression!
+[661.7709] Saving model to ./Saved models/CICIDS2017\v0.3 Logistic Regression - CICIDS2017.pkl
+[661.7724] Preparing GaussianNB
+[661.9330] Training time: 0.1606
+[661.9335] Evaluating classifier: GaussianNB...
+              precision    recall  f1-score   support
+
+           0       1.00      0.26      0.42     22606
+           1       0.08      1.00      0.14       410
+           2       0.89      0.97      0.93      2547
+           3       0.91      0.57      0.70      2021
+           4       0.76      0.70      0.73      4684
+           5       0.07      0.66      0.13      1118
+           6       0.57      0.82      0.67      1136
+           7       0.51      0.99      0.67      1686
+           8       0.00      0.00      0.00         0
+           9       0.04      0.90      0.08        10
+          10       0.90      0.99      0.94      3196
+          11       0.86      0.98      0.92      1158
+          12       0.13      0.04      0.06       301
+          13       0.00      0.33      0.01         6
+          14       0.34      0.93      0.50       136
+
+    accuracy                           0.51     41015
+   macro avg       0.47      0.68      0.46     41015
+weighted avg       0.87      0.51      0.56     41015
+
+[663.8822] Testing time: 1.9485
+[664.4964] Failed to create ROC for: GaussianNB!
+[664.4973] Saving model to ./Saved models/CICIDS2017\v0.3 GaussianNB - CICIDS2017.pkl
+[664.4993] Preparing Linear SVC(LBasedImpl)
+[984.8811] Training time: 320.3818
+[984.8816] Evaluating classifier: Linear SVC(LBasedImpl)...
+              precision    recall  f1-score   support
+
+           0       0.87      0.90      0.89     22606
+           1       0.01      0.01      0.01       410
+           2       0.45      0.65      0.54      2547
+           3       0.84      0.59      0.69      2021
+           4       0.82      0.81      0.82      4684
+           5       0.40      0.19      0.26      1118
+           6       0.35      0.28      0.31      1136
+           7       0.95      0.85      0.90      1686
+           9       1.00      0.10      0.18        10
+          10       0.82      0.86      0.84      3196
+          11       0.97      0.74      0.84      1158
+          12       0.69      0.15      0.25       301
+          13       0.00      0.00      0.00         6
+          14       0.00      0.00      0.00       136
+
+    accuracy                           0.80     41015
+   macro avg       0.58      0.44      0.47     41015
+weighted avg       0.80      0.80      0.79     41015
+
+[985.2086] Testing time: 0.3266
+[985.4381] Failed to create ROC for: Linear SVC(LBasedImpl)!
+[985.4387] Saving model to ./Saved models/CICIDS2017\v0.3 Linear SVC(LBasedImpl) - CICIDS2017.pkl
+[985.4392] Preparing Decision Tree
+[996.6932] Training time: 11.2540
+[996.6938] Evaluating classifier: DecisionTreeClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     22606
+           1       0.90      0.91      0.90       410
+           2       1.00      1.00      1.00      2547
+           3       1.00      1.00      1.00      2021
+           4       0.99      1.00      0.99      4684
+           5       0.99      0.99      0.99      1118
+           6       0.99      0.99      0.99      1136
+           7       1.00      1.00      1.00      1686
+           9       0.80      0.80      0.80        10
+          10       1.00      1.00      1.00      3196
+          11       1.00      1.00      1.00      1158
+          12       0.69      0.95      0.80       301
+          13       0.50      0.17      0.25         6
+          14       0.50      0.07      0.13       136
+
+    accuracy                           0.99     41015
+   macro avg       0.88      0.85      0.85     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[997.0166] Testing time: 0.3223
+[997.2601] Failed to create ROC for: DecisionTreeClassifier!
+[997.2616] Saving model to ./Saved models/CICIDS2017\v0.3 DecisionTreeClassifier - CICIDS2017.pkl
+[1017.1925] Preparing RandomForest
+[1285.7977] Training time: 268.6039
+[1285.7981] Evaluating classifier: RandomForestClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     22606
+           1       0.92      0.91      0.92       410
+           2       1.00      1.00      1.00      2547
+           3       1.00      1.00      1.00      2021
+           4       0.99      1.00      0.99      4684
+           5       0.99      0.99      0.99      1118
+           6       1.00      0.99      1.00      1136
+           7       1.00      1.00      1.00      1686
+           9       0.90      0.90      0.90        10
+          10       1.00      1.00      1.00      3196
+          11       1.00      1.00      1.00      1158
+          12       0.70      0.98      0.81       301
+          13       0.00      0.00      0.00         6
+          14       0.75      0.07      0.12       136
+
+    accuracy                           0.99     41015
+   macro avg       0.87      0.84      0.84     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[1288.6167] Testing time: 2.8179
+[1289.3814] Failed to create ROC for: RandomForestClassifier!
+[1289.7371] Saving model to ./Saved models/CICIDS2017\v0.3 RandomForestClassifier - CICIDS2017.pkl
+[1289.7787] Preparing DNN
+[2136.9265] Training time: 847.1467
+Test Loss: -23.2742, Test Accuracy: 0.4400
+[2139.8929] Saving model to ./Saved models/CICIDS2017\v0.3 Deep Neural Network - CICIDS2017.pkl
+[2143.3363] Preparing Reduced Random Forest
+[3074.5567] Training time: 931.2199
+[3074.5577] Evaluating classifier: Reduced RandomForest...
+              precision    recall  f1-score   support
+
+           0       0.99      1.00      0.99     22606
+           1       0.92      0.86      0.89       410
+           2       1.00      1.00      1.00      2547
+           3       1.00      0.99      0.99      2021
+           4       0.99      0.99      0.99      4684
+           5       1.00      0.99      0.99      1118
+           6       1.00      0.99      1.00      1136
+           7       1.00      1.00      1.00      1686
+           9       0.00      0.00      0.00        10
+          10       1.00      1.00      1.00      3196
+          11       1.00      0.98      0.99      1158
+          12       0.70      0.97      0.81       301
+          13       0.00      0.00      0.00         6
+          14       1.00      0.06      0.11       136
+
+    accuracy                           0.99     41015
+   macro avg       0.83      0.77      0.77     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[3078.2165] Testing time: 3.6588
+[3079.0039] Failed to create ROC for: Reduced RandomForest!
+[3079.0048] Saving model to ./Saved models/CICIDS2017\v0.3 Reduced RandomForest - CICIDS2017.pkl
+[3079.0418] Preparing XGBoost
+[3084.5288] Training time: 5.4870
+[3084.7983] Training Error XGBOOST 0.2522686125512788  Test error XGBOOST 0.3688767576908875
+[3084.7983] Saving model to ./Saved models/CICIDS2017\v0.3 XGBoost - CICIDS2017.pkl
