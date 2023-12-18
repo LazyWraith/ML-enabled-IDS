@@ -1,0 +1,93 @@
+[000.0010] Init complete!
+[000.0010] Reading from ./input/CICIDS2017/small-CICIDS2017.csv
+[001.2340] Mapping outcomes...
+[005.7120] Number of original features is 68 and of reduced features is 40
+[005.9324] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary Logistic Regression - CICIDS2017.pkl
+[005.9374] Evaluating classifier: Logistic Regression...
+              precision    recall  f1-score   support
+
+           0       0.81      0.85      0.83     22606
+           1       0.81      0.76      0.78     18409
+
+    accuracy                           0.81     41015
+   macro avg       0.81      0.81      0.81     41015
+weighted avg       0.81      0.81      0.81     41015
+
+[006.2244] Testing time: 0.2870
+[008.7203] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary KNeighborsClassifier - CICIDS2017.pkl
+[008.7513] Evaluating classifier: KNeighborsClassifier...
+              precision    recall  f1-score   support
+
+           0       0.99      0.98      0.99     22606
+           1       0.98      0.99      0.98     18409
+
+    accuracy                           0.98     41015
+   macro avg       0.98      0.98      0.98     41015
+weighted avg       0.98      0.98      0.98     41015
+
+[062.7014] Testing time: 53.9491
+[072.2673] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary GaussianNB - CICIDS2017.pkl
+[072.2732] Evaluating classifier: GaussianNB...
+              precision    recall  f1-score   support
+
+           0       0.96      0.61      0.74     22606
+           1       0.67      0.97      0.79     18409
+
+    accuracy                           0.77     41015
+   macro avg       0.81      0.79      0.77     41015
+weighted avg       0.83      0.77      0.76     41015
+
+[072.6947] Testing time: 0.4214
+[073.0947] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary Linear SVC(LBasedImpl) - CICIDS2017.pkl
+[073.0997] Evaluating classifier: Linear SVC(LBasedImpl)...
+              precision    recall  f1-score   support
+
+           0       0.85      0.87      0.86     22606
+           1       0.84      0.80      0.82     18409
+
+    accuracy                           0.84     41015
+   macro avg       0.84      0.84      0.84     41015
+weighted avg       0.84      0.84      0.84     41015
+
+[073.3317] Testing time: 0.2320
+[073.4867] Failed to create ROC for: Linear SVC(LBasedImpl)!
+[073.4867] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary DecisionTreeClassifier - CICIDS2017.pkl
+[073.4917] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary DecisionTreeClassifier - CICIDS2017.pkl
+[073.4917] Evaluating classifier: DecisionTreeClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      1.00     22606
+           1       0.99      1.00      0.99     18409
+
+    accuracy                           1.00     41015
+   macro avg       1.00      1.00      1.00     41015
+weighted avg       1.00      1.00      1.00     41015
+
+[073.7513] Testing time: 0.2596
+[082.0412] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary RandomForestClassifier - CICIDS2017.pkl
+[082.0582] Evaluating classifier: RandomForestClassifier...
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     22606
+           1       0.99      1.00      1.00     18409
+
+    accuracy                           1.00     41015
+   macro avg       1.00      1.00      1.00     41015
+weighted avg       1.00      1.00      1.00     41015
+
+[083.7997] Testing time: 1.7415
+[084.5813] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary Deep Neural Network - CICIDS2017.pkl
+Test Loss: 3.9329, Test Accuracy: 0.7431
+[087.7751] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary Reduced RandomForest - CICIDS2017.pkl
+[087.7861] Evaluating classifier: Reduced RandomForest...
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      1.00     22606
+           1       0.99      0.99      0.99     18409
+
+    accuracy                           0.99     41015
+   macro avg       0.99      0.99      0.99     41015
+weighted avg       0.99      0.99      0.99     41015
+
+[089.3494] Testing time: 1.5633
+[089.8408] Loading model from ./Saved models/CICIDS2017/v1.1 binary\v1.1 binary XGBoost - CICIDS2017.pkl
