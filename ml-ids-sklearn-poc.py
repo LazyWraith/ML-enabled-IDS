@@ -69,6 +69,7 @@ def get_filename_counter():
     return str(filename_counter) + ". "
 
 def printlog(message):
+    message = str(message)
     log.write(message + "\n")
     print(message, flush=True)
 
@@ -170,31 +171,14 @@ def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
     print(f"Metrics saved to {filepath}")
 
 
-def balancing(X_train, y_train, index, target):
-    # smote=SMOTE(n_jobs=-1,sampling_strategy={index:target})
-    # x, y = smote.fit_resample(x, y)
-    # result = pd.Series(y).value_counts()
-    # printlog(result)
+def balancing(x_train, y_train, jobs):
+    for data in jobs:
+        smote=SMOTE(n_jobs=-1,sampling_strategy={data[0]:data[1]})
+        x_train, y_train = smote.fit_resample(x_train, y_train)
+    result = pd.Series(y_train).value_counts()
+    printlog(result)
 
-    # Calculate the current class distribution
-    class_distribution_before = Counter(y_train)
-    print("Class distribution before SMOTE:", class_distribution_before)
-
-    # Determine the target count based on the maximum count in the original class distribution
-    target_count = max(class_distribution_before.values())
-    
-    # Initialize SMOTE with desired sampling strategy for each minority class
-    sampling_strategy = {label: target_count - count for label, count in class_distribution_before.items() if count < target_count}
-    smote = SMOTE(sampling_strategy=sampling_strategy, n_jobs=-1)
-
-    # Apply SMOTE to oversample the minority classes
-    X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
-
-    # Calculate the class distribution after SMOTE
-    class_distribution_after = Counter(y_train_resampled)
-    print("Class distribution after SMOTE:", class_distribution_after)
-
-    return X_train_resampled, y_train_resampled
+    return x_train, y_train
 
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
@@ -456,6 +440,7 @@ if dataset_name in datasets_config:
     label_normal_value = config["label_normal_value"]
     pie_stats = config["pie_stats"]
     feature_reduced_number = config['feature_reduced_number']
+    resampling_job = config.get('resampling_job')
     
 else:
     print("Invalid dataset name!")
@@ -497,7 +482,7 @@ if (read_cols_from_csv):
 data_train.columns = columns
 data_test.columns = columns
 data_train.info()
-data_test.info()
+if not use_single_dataset: data_test.info()
 # data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
 kernal_evals = dict()
 
@@ -508,7 +493,6 @@ if (generate_statistics_pie):
         pie_plot(data_train, i, 1, 2)
 
 # Process and split dataset
-print(data_train[label_header].value_counts())
 if (use_single_dataset): 
     if use_multiclass:
         labelencoder = LabelEncoder()
@@ -550,6 +534,9 @@ if (use_single_dataset):
         y_train_encoded = label_encoder.fit_transform(y_train)
         y_test_encoded = label_encoder.transform(y_test)
 
+        # SMOTE
+        if use_multiclass:
+            x_train, y_train = balancing(x_train, y_train, resampling_job)
         run_models(x_train, y_train, x_test, y_test)
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
