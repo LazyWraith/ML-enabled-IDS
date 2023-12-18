@@ -1,4 +1,5 @@
 import csv
+from collections import Counter
 import os
 import traceback
 import numpy as np
@@ -22,6 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn import svm
 from sklearn import metrics
+from imblearn.over_sampling import SMOTE
 import pickle
 import json
 import time
@@ -67,6 +69,7 @@ def get_filename_counter():
     return str(filename_counter) + ". "
 
 def printlog(message):
+    message = str(message)
     log.write(message + "\n")
     print(message, flush=True)
 
@@ -167,6 +170,15 @@ def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
 
     print(f"Metrics saved to {filepath}")
 
+
+def balancing(x_train, y_train, jobs):
+    for data in jobs:
+        smote=SMOTE(n_jobs=-1,sampling_strategy={data[0]:data[1]})
+        x_train, y_train = smote.fit_resample(x_train, y_train)
+    result = pd.Series(y_train).value_counts()
+    printlog(result)
+
+    return x_train, y_train
 
 def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
@@ -392,6 +404,7 @@ def run_dnn(x_train, y_train, x_test, y_test):
     cm_plot(predicted, name)
 
 def run_models(x_train, y_train, x_test, y_test):
+    # x_train, y_train = balancing(x_train, y_train, 4, 1500)
     if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
     if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
@@ -427,6 +440,7 @@ if dataset_name in datasets_config:
     label_normal_value = config["label_normal_value"]
     pie_stats = config["pie_stats"]
     feature_reduced_number = config['feature_reduced_number']
+    resampling_job = config.get('resampling_job')
     
 else:
     print("Invalid dataset name!")
@@ -468,7 +482,7 @@ if (read_cols_from_csv):
 data_train.columns = columns
 data_test.columns = columns
 data_train.info()
-data_test.info()
+if not use_single_dataset: data_test.info()
 # data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
 kernal_evals = dict()
 
@@ -479,7 +493,6 @@ if (generate_statistics_pie):
         pie_plot(data_train, i, 1, 2)
 
 # Process and split dataset
-print(data_train[label_header].value_counts())
 if (use_single_dataset): 
     if use_multiclass:
         labelencoder = LabelEncoder()
@@ -521,6 +534,9 @@ if (use_single_dataset):
         y_train_encoded = label_encoder.fit_transform(y_train)
         y_test_encoded = label_encoder.transform(y_test)
 
+        # SMOTE
+        if use_multiclass:
+            x_train, y_train = balancing(x_train, y_train, resampling_job)
         run_models(x_train, y_train, x_test, y_test)
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
