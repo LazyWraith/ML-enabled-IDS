@@ -7,6 +7,7 @@ import pandas as pd
 import warnings
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.calibration import label_binarize
 import tensorflow as tf
 import xgboost as xgb
 from pathlib import Path
@@ -180,43 +181,53 @@ def balancing(x_train, y_train, jobs):
 
     return x_train, y_train
 
-def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
+def evaluate_classification(model, name, x_test, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
-    train_predict = model.predict(X_train)
-    test_predict = model.predict(X_test)
+    y_pred = model.predict(x_test)
 
-    train_accuracy = metrics.accuracy_score(y_train, train_predict)
-    test_accuracy = metrics.accuracy_score(y_test, test_predict)
-    
-    train_precision = metrics.precision_score(y_train, train_predict, average=eval_average)
-    test_precision = metrics.precision_score(y_test, test_predict, average=eval_average)
-    
-    train_recall = metrics.recall_score(y_train, train_predict, average=eval_average)
-    test_recall = metrics.recall_score(y_test, test_predict, average=eval_average)
+    accuracy = metrics.accuracy_score(y_test, y_pred)
 
-    train_f1 = metrics.f1_score(y_train, train_predict, average=eval_average)
-    test_f1 = metrics.f1_score(y_test, test_predict, average=eval_average)
+    precision, recall, fscore, support = metrics.precision_recall_fscore_support(y_test, y_pred, average=eval_average)
 
-    report = metrics.classification_report(y_test, test_predict)
+    report = metrics.classification_report(y_test, y_pred)
     printlog(report)
-    kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall, train_f1, test_f1]
+    kernal_evals[str(name)] = [accuracy, precision, recall, fscore, support]
     
     end_time = time.time()
     printlog(f"[{get_ts()}] Testing time: {(end_time - start_time):.4f}")
 
-    cm_plot(test_predict, name)
+    cm_plot(y_pred, name)
 
+    test_predict_proba = model.predict_proba(x_test)
+    num_classes = test_predict_proba.shape[1]
     try:
-        test_predict_proba = model.predict_proba(X_test)[:, 1]
-        fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
-        roc_auc = metrics.auc(fpr, tpr)
-        roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
+        if num_classes == 2:
+            # Binary classification
+            fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba[:, 1])
+            roc_auc = metrics.auc(fpr, tpr)
+            roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
+        else:
+            # Multiclass classification
+            y_test_bin = label_binarize(y_test, classes=np.arange(num_classes))
+
+            # Initialize variables to store fpr, tpr, and roc_auc for each class
+            fpr = dict()
+            tpr = dict()
+            roc_auc = dict()
+
+            for i in range(num_classes):
+                fpr[i], tpr[i], _ = metrics.roc_curve(y_test_bin[:, i], test_predict_proba[:, i])
+                roc_auc[i] = metrics.auc(fpr[i], tpr[i])
+
+            # Plot the ROC curves for each class
+            for i in range(num_classes):
+                roc_plot(fpr[i], tpr[i], label1=f"AUC Class {i}: {roc_auc[i]}", title=name)
     except Exception as e:
         printlog(f"[{get_ts()}] Failed to create ROC for: {name}!")
         # print(e)
-        # traceback.print_exc()
-    return train_predict, test_predict
+        traceback.print_exc()
+    return y_pred
 
 def f_importances(coef, names, top=-1, title="untitled"):
     imp = coef
@@ -241,12 +252,12 @@ def run_lr(x_train, y_train, x_test, y_test):
     if load_saved_models:
         lr = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing Logistic Regression")
+        printlog(f"[{get_ts()}] Training Logistic Regression")
         start_time = time.time()
         lr = LogisticRegression(**lr_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(lr, "Logistic Regression", x_train, x_test, y_train, y_test)
+    evaluate_classification(lr, "Logistic Regression", x_test, y_test)
     if save_trained_models: save_model(lr, file_name)
 
 def run_knn(x_train, y_train, x_test, y_test):
@@ -254,12 +265,12 @@ def run_knn(x_train, y_train, x_test, y_test):
     if load_saved_models:
         knn = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing KNeighborsClassifier")
+        printlog(f"[{get_ts()}] Training KNeighborsClassifier")
         start_time = time.time()
         knn = KNeighborsClassifier(**knn_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(knn, "KNeighborsClassifier", x_train, x_test, y_train, y_test)
+    evaluate_classification(knn, "KNeighborsClassifier", x_test, y_test)
     if save_trained_models: save_model(knn, file_name)
 
 def run_gnb(x_train, y_train, x_test, y_test):
@@ -267,12 +278,12 @@ def run_gnb(x_train, y_train, x_test, y_test):
     if load_saved_models:
         gnb = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing GaussianNB")
+        printlog(f"[{get_ts()}] Training GaussianNB")
         start_time = time.time()
         gnb = GaussianNB(**gnb_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(gnb, "GaussianNB", x_train, x_test, y_train, y_test)
+    evaluate_classification(gnb, "GaussianNB", x_test, y_test)
     if save_trained_models: save_model(gnb, file_name)
 
 def run_lin_svc(x_train, y_train, x_test, y_test): 
@@ -280,12 +291,12 @@ def run_lin_svc(x_train, y_train, x_test, y_test):
     if load_saved_models:
         lin_svc = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing Linear SVC(LBasedImpl)")
+        printlog(f"[{get_ts()}] Training Linear SVC(LBasedImpl)")
         start_time = time.time()
         lin_svc = svm.LinearSVC(**lin_svc_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(lin_svc, "Linear SVC(LBasedImpl)", x_train, x_test, y_train, y_test)
+    evaluate_classification(lin_svc, "Linear SVC(LBasedImpl)", x_test, y_test)
     if save_trained_models: save_model(lin_svc, file_name)
 
 def run_dt(x_train, y_train, x_test, y_test):
@@ -294,13 +305,13 @@ def run_dt(x_train, y_train, x_test, y_test):
         dt = load_model(file_name)
         tdt = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing Decision Tree")
+        printlog(f"[{get_ts()}] Training Decision Tree")
         start_time = time.time()
         dt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
         tdt = DecisionTreeClassifier(**dt_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(tdt, "DecisionTreeClassifier", x_train, x_test, y_train, y_test)
+    evaluate_classification(tdt, "DecisionTreeClassifier", x_test, y_test)
     if save_trained_models: save_model(tdt, file_name)
     features_names = data_train.drop(label_header, axis=1)
     f_importances(abs(tdt.feature_importances_), features_names, top=18, title="Decision Tree")
@@ -318,12 +329,12 @@ def run_rf(x_train, y_train, x_test, y_test):
     if load_saved_models:
         rf = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing RandomForest")
+        printlog(f"[{get_ts()}] Training RandomForest")
         start_time = time.time()
         rf = RandomForestClassifier(**rf_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(rf, "RandomForestClassifier", x_train, x_test, y_train, y_test)
+    evaluate_classification(rf, "RandomForestClassifier", x_test, y_test)
     features_names = data_train.drop(label_header, axis=1)
     f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
     if save_trained_models: save_model(rf, file_name)
@@ -332,12 +343,12 @@ def run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
     if load_saved_models:
         rrf = load_model("Reduced RandomForest")
     else:
-        printlog(f"[{get_ts()}] Preparing Reduced Random Forest")
+        printlog(f"[{get_ts()}] Training Reduced Random Forest")
         start_time = time.time()
         rrf = RandomForestClassifier(**rf_params).fit(x_train_reduced, y_train_reduced)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(rrf, "Reduced RandomForest", x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced)
+    evaluate_classification(rrf, "Reduced RandomForest", x_test_reduced, y_test_reduced)
     if save_trained_models: save_model(rrf, "Reduced RandomForest")
 
 def run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
@@ -345,9 +356,9 @@ def run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
     if load_saved_models:
         xg_r = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing XGBoost")
+        printlog(f"[{get_ts()}] Training XGBoost")
         start_time = time.time()
-        xg_r = xgb.XGBRegressor(**xgb_params).fit(x_train_reduced, y_train_reduced)
+        xg_r = xgb.XGBClassifier(**xgb_params).fit(x_train_reduced, y_train_reduced)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
         name = "XGBOOST"
@@ -355,12 +366,12 @@ def run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
         test_error = metrics.mean_squared_error(y_test_reduced, xg_r.predict(x_test_reduced), squared=False)
         printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
     if save_trained_models: save_model(xg_r, file_name)
-    y_pred = xg_r.predict(x_test_reduced)
-    df = pd.DataFrame({"Y_test": y_test_reduced, "Y_pred": y_pred})
+    test_predict = evaluate_classification(xg_r, "XGBoost", x_test_reduced, y_test_reduced)
+    df = pd.DataFrame({"Y_test": y_test_reduced, "Y_pred": test_predict})
     plt.figure(figsize=(16, 8))
     plt.plot(df[:80])
     plt.legend(['Actual', 'Predicted'])
-    # if (display_results): plt.show()
+    if (display_results): plt.show()
     plt.clf()
 
 def run_dnn(x_train, y_train, x_test, y_test):
@@ -369,7 +380,7 @@ def run_dnn(x_train, y_train, x_test, y_test):
     if load_saved_models:
         dnn = load_model(file_name)
     else:
-        printlog(f"[{get_ts()}] Preparing DNN")
+        printlog(f"[{get_ts()}] Training DNN")
         start_time = time.time()
         dnn = tf.keras.Sequential()
         for units in dnn_params["dense_layers"]:
@@ -398,8 +409,6 @@ def run_dnn(x_train, y_train, x_test, y_test):
     printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
     if save_trained_models: save_model(dnn, file_name)
 
-    actual = y_test
-    # predicted = dnn.predict(x_test)
     predicted = dnn.predict(x_test)
     cm_plot(predicted, name)
 
