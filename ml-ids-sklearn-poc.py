@@ -195,11 +195,11 @@ def smote_balancing(x_train, y_train, jobs):
 
     return x_train, y_train
 
-def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
+def evaluate_classification(model, name, x_train, x_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
-    train_predict = model.predict(X_train)
-    test_predict = model.predict(X_test)
+    train_predict = model.predict(x_train)
+    test_predict = model.predict(x_test)
 
     train_accuracy = metrics.accuracy_score(y_train, train_predict)
     test_accuracy = metrics.accuracy_score(y_test, test_predict)
@@ -223,7 +223,7 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     cm_plot(y_test, test_predict, name)
 
     try:
-        test_predict_proba = model.predict_proba(X_test)[:, 1]
+        test_predict_proba = model.predict_proba(x_test)[:, 1]
         fpr, tpr, threshold = metrics.roc_curve(y_test, test_predict_proba)
         roc_auc = metrics.auc(fpr, tpr)
         roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
@@ -419,7 +419,6 @@ def run_dnn(x_train, y_train, x_test, y_test):
     cm_plot(y_test, predicted, name)
 
 def run_models(x_train, y_train, x_test, y_test):
-    # x_train, y_train = balancing(x_train, y_train, 4, 1500)
     if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
     if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
@@ -432,6 +431,11 @@ def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_
     if (bool_rf): run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
     if (bool_xgb): run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
     
+
+
+
+#-------------------------------- MAIN --------------------------------
+
 # Read dataset configuration from JSON
 with open('dataset-config.json', 'r') as file:
     datasets_config = json.load(file)
