@@ -154,6 +154,13 @@ def preprocess(dataframe, obj_cols_):
     dataframe = pd.get_dummies(dataframe, columns=obj_cols_)
     df_num = dataframe[num_cols]
     labels = dataframe[label_header]
+    
+    # Replace NaN values with 0
+    df_num.fillna(0, inplace=True)
+    
+    # Replace infinity values with 0
+    df_num.replace([np.inf, -np.inf], 0, inplace=True)
+    
     std_scaler = RobustScaler()
     std_scaler_temp = std_scaler.fit_transform(df_num)
     std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
@@ -187,11 +194,14 @@ def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
 
 
 def smote_balancing(x_train, y_train, jobs):
+    printlog("Performing SMOTE balancing...")
     for data in jobs:
         smote=SMOTE(n_jobs=-1,sampling_strategy={data[0]:data[1]})
         x_train, y_train = smote.fit_resample(x_train, y_train)
     result = pd.Series(y_train).value_counts()
-    printlog(result)
+    for encoded_value, count in result.items():
+        original_label = label_mapping[encoded_value].replace('�', '-')
+        printlog(f"{original_label} ({encoded_value}): {count}")
 
     return x_train, y_train
 
@@ -229,7 +239,6 @@ def evaluate_classification(model, name, x_train, x_test, y_train, y_test):
         roc_plot(fpr, tpr, label1=f"AUC: {roc_auc}", title=name)
     except Exception as e:
         printlog(f"[{get_ts()}] Failed to create ROC for: {name}!")
-        # print(e)
         # traceback.print_exc()
     return train_predict, test_predict
 
@@ -516,6 +525,7 @@ if (use_single_dataset):
     if use_multiclass:
         labelencoder = LabelEncoder()
         data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
+        label_mapping = {index: label for index, label in enumerate(labelencoder.classes_)}
 
     else:
         data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
@@ -530,7 +540,10 @@ if (use_single_dataset):
     pca = pca.fit(x)
     x_reduced = pca.transform(x)
     printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
-    print(data_train[label_header].value_counts())
+    value_counts = data_train[label_header].value_counts()
+    for encoded_value, count in value_counts.items():
+        original_label = label_mapping[encoded_value].replace('�', '-')
+        printlog(f"{original_label} ({encoded_value}): {count}")
     y=np.ravel(y)
     y = y.astype('int')
 
@@ -557,7 +570,7 @@ if (use_single_dataset):
         if use_multiclass:
             x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
         run_models(x_train, y_train, x_test, y_test)
-        run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+        # run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 else:
     if use_multiclass:

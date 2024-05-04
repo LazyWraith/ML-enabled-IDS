@@ -29,7 +29,7 @@
       "test_path": "",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
-      "drop_cols": ["Flow Bytes/s", "Flow Packets/s", "Init_Win_bytes_forward", "Init_Win_bytes_backward", "Idle Mean", "Idle Std", "Idle Max", "Idle Min", "Fwd Header Length", "Bwd Header Length"],
+      "drop_cols": ["Fwd Header Length.1"],
       "obj_cols": [],
       "label_header": "Label",
       "label_normal_value": "BENIGN",
