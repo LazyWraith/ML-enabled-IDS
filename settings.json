@@ -19,7 +19,7 @@
   "bool_dnn": true,
   "use_kfold": false,
   "use_single_dataset": true,
-  "split_train_ratio": 0.8,
-  "split_test_ratio": 0.2,
+  "split_train_ratio": 0.7,
+  "split_test_ratio": 0.3,
   "rndm_state": 42
 }
