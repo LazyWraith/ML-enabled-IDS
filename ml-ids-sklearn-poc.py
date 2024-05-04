@@ -103,11 +103,11 @@ def pie_plot(df, cols_list, rows, cols):
     if (display_results): plt.show()
     plt.clf()
 
-def cm_plot(test_predict, name):
+def cm_plot(y_test, y_predict, name):
     # Combine all non-"Normal" classes into a single "Attack" class
         # Flatten CM attack classes into one
     y_test_combined = np.where(y_test == 0, 0, 1)
-    test_predict_combined = np.where(test_predict == 0, 0, 1)
+    test_predict_combined = np.where(y_predict == 0, 0, 1)
     cm = metrics.confusion_matrix(y_test_combined, test_predict_combined)
     cm_display = metrics.ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['Normal', 'Attack'])
     
@@ -118,6 +118,21 @@ def cm_plot(test_predict, name):
     plt.savefig(os.path.join(output_dir, f"{counter}{name}_confusion_matrix.png"))
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
     plt.clf()
+    
+    if use_multiclass:
+        try:
+            cm=metrics.confusion_matrix(y_test, y_predict)
+            f,ax=plt.subplots(figsize=(5,5))
+            sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
+            plt.xlabel("y_pred")
+            plt.ylabel("y_true")
+            # plt.show()
+            plt.savefig(os.path.join(output_dir, f"{counter}{name}_multi_confusion_matrix.png"))
+            print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_multi_confusion_matrix.png", flush=True)
+            plt.clf()
+        except Exception as e:
+            print(e)
+            print(f"Unable to plot CM for {name}")
 
 def roc_plot(fpr, tpr, label1 = 'ROC Curve', label2='Random guess', title=''):
     # Plot ROC curve
@@ -171,7 +186,7 @@ def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
     print(f"Metrics saved to {filepath}")
 
 
-def balancing(x_train, y_train, jobs):
+def smote_balancing(x_train, y_train, jobs):
     for data in jobs:
         smote=SMOTE(n_jobs=-1,sampling_strategy={data[0]:data[1]})
         x_train, y_train = smote.fit_resample(x_train, y_train)
@@ -205,7 +220,7 @@ def evaluate_classification(model, name, X_train, X_test, y_train, y_test):
     end_time = time.time()
     printlog(f"[{get_ts()}] Testing time: {(end_time - start_time):.4f}")
 
-    cm_plot(test_predict, name)
+    cm_plot(y_test, test_predict, name)
 
     try:
         test_predict_proba = model.predict_proba(X_test)[:, 1]
@@ -401,7 +416,7 @@ def run_dnn(x_train, y_train, x_test, y_test):
     actual = y_test
     # predicted = dnn.predict(x_test)
     predicted = dnn.predict(x_test)
-    cm_plot(predicted, name)
+    cm_plot(y_test, predicted, name)
 
 def run_models(x_train, y_train, x_test, y_test):
     # x_train, y_train = balancing(x_train, y_train, 4, 1500)
@@ -523,7 +538,7 @@ if (use_single_dataset):
             x_train, x_test = x[train_index], x[test_index]
             y_train, y_test = y[train_index], y[test_index]
 
-            run_models(x_train, y_train, x_test, y_test)
+        run_models(x_train, y_train, x_test, y_test)
     else:
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
         x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
@@ -536,7 +551,7 @@ if (use_single_dataset):
 
         # SMOTE
         if use_multiclass:
-            x_train, y_train = balancing(x_train, y_train, resampling_job)
+            x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
         run_models(x_train, y_train, x_test, y_test)
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
