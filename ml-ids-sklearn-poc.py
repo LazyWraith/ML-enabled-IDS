@@ -79,14 +79,14 @@ def get_ts():
 
 def save_model(model, name):
     Path(model_save_path).mkdir(parents=True, exist_ok=True)
-    filename = os.path.join(model_save_path, f"{model_save_version} {name} - {dataset_name}.pkl")
+    filename = os.path.join(model_save_path, f"{model_save_version} {name}.pkl")
     printlog(f"[{get_ts()}] Saving model to {filename}")
     with open(filename, 'wb') as f:
         pickle.dump(model, f)
 
 def load_model(name):
     Path(model_save_path).mkdir(parents=True, exist_ok=True)
-    filename = os.path.join(model_save_path, f"{model_save_version} {name} - {dataset_name}.pkl")
+    filename = os.path.join(model_save_path, f"{model_save_version} {name}.pkl")
     printlog(f"[{get_ts()}] Loading model from {filename}")
     with open(filename, 'rb') as f:
         model = pickle.load(f)
@@ -541,9 +541,12 @@ if (use_single_dataset):
     x_reduced = pca.transform(x)
     printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
     value_counts = data_train[label_header].value_counts()
-    for encoded_value, count in value_counts.items():
-        original_label = label_mapping[encoded_value].replace('�', '-')
-        printlog(f"{original_label} ({encoded_value}): {count}")
+    if use_multiclass:
+        for encoded_value, count in value_counts.items():
+            original_label = label_mapping[encoded_value].replace('�', '-')
+            printlog(f"{original_label} ({encoded_value}): {count}")
+    else:
+        printlog(value_counts)
     y=np.ravel(y)
     y = y.astype('int')
 
@@ -570,17 +573,22 @@ if (use_single_dataset):
         if use_multiclass:
             x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
         run_models(x_train, y_train, x_test, y_test)
-        # run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+        run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 else:
     if use_multiclass:
-        data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
-        attack_classes = data_train[data_train[label_header] != 0][label_header].unique()
-        for i, attack_class in enumerate(attack_classes, start=1):
-            data_train.loc[data_train[label_header] == attack_class, label_header] = i
+        # data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
+        # attack_classes = data_train[data_train[label_header] != 0][label_header].unique()
+        # for i, attack_class in enumerate(attack_classes, start=1):
+        #     data_train.loc[data_train[label_header] == attack_class, label_header] = i
 
-        # Print the modified DataFrame
-        print(data_train[label_header].value_counts())
+        # # Print the modified DataFrame
+        # print(data_train[label_header].value_counts())
+
+        labelencoder = LabelEncoder()
+        data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
+        data_test.iloc[:, -1] = labelencoder.fit_transform(data_test.iloc[:, -1])
+        label_mapping = {index: label for index, label in enumerate(labelencoder.classes_)}
 
     else:
         # binary classification
