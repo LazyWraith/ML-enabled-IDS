@@ -55,7 +55,6 @@ bool_xgb = settings.get('bool_xgb', True)
 bool_rf = settings.get('bool_rf', True)
 bool_dnn = settings.get('bool_dnn', True)
 
-use_kfold = settings.get('use_kfold', True)
 use_single_dataset = settings.get('use_single_dataset', True)
 split_train_ratio = settings.get('split_train_ratio', 0.6)
 split_test_ratio = 1 - split_train_ratio
@@ -434,6 +433,7 @@ def run_models(x_train, y_train, x_test, y_test):
     if (bool_lin_svc): run_lin_svc(x_train, y_train, x_test, y_test)
     if (bool_dt): run_dt(x_train, y_train, x_test, y_test)
     if (bool_rf): run_rf(x_train, y_train, x_test, y_test)
+    if (bool_dnn): run_xgb(x_train, y_train, x_test, y_test)
     if (bool_dnn): run_dnn(x_train, y_train, x_test, y_test)
 
 def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
@@ -550,30 +550,20 @@ if use_single_dataset:
     y=np.ravel(y)
     y = y.astype('int')
 
-    if use_kfold:
-        # Assume X and y are your features and labels
-        kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
+    x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
 
-        for train_index, test_index in kf.split(x):
-            x_train, x_test = x[train_index], x[test_index]
-            y_train, y_test = y[train_index], y[test_index]
+    unique_attack_cats = np.unique(y_train)
+        
+    label_encoder = LabelEncoder()
+    y_train_encoded = label_encoder.fit_transform(y_train)
+    y_test_encoded = label_encoder.transform(y_test)
 
-        run_models(x_train, y_train, x_test, y_test)
-    else:
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
-        x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
-
-        unique_attack_cats = np.unique(y_train)
-            
-        label_encoder = LabelEncoder()
-        y_train_encoded = label_encoder.fit_transform(y_train)
-        y_test_encoded = label_encoder.transform(y_test)
-
-        # SMOTE
-        if use_multiclass:
-            x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
-        run_models(x_train, y_train, x_test, y_test)
-        run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    # SMOTE
+    if use_multiclass:
+        x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
+    run_models(x_train, y_train, x_test, y_test)
+    run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 # Evaluate using separate train and test datasets
 else:
@@ -623,8 +613,7 @@ else:
     printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
 
     run_models(x_train, y_train, x_test, y_test)
-    if not use_kfold:
-        run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 # Save all metrics to file
 save_metrics_to_csv(kernal_evals)
