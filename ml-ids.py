@@ -18,7 +18,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import LabelEncoder
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn import svm
@@ -354,26 +354,43 @@ def run_rf(x_train, y_train, x_test, y_test):
 def run_xgb(x_train, y_train, x_test, y_test):
     file_name = "XGBoost"
     if load_saved_models:
-        xg_r = load_model(file_name)
+        xg_c = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing XGBoost")
         start_time = time.time()
-        xg_r = xgb.XGBRegressor(**xgb_params).fit(x_train, y_train)
+        xg_c = xgb.XGBClassifier(**xgb_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
         name = "XGBOOST"
         # train_error = metrics.mean_squared_error(y_train, xg_r.predict(x_train), squared=False)
         # test_error = metrics.mean_squared_error(y_test, xg_r.predict(x_test), squared=False)
         # printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
-    evaluate_classification(xg_r, file_name, x_train, x_test, y_train, y_test)
-    if save_trained_models: save_model(xg_r, file_name)
-    y_pred = xg_r.predict(x_test)
-    df = pd.DataFrame({"Y_test": y_test, "Y_pred": y_pred})
-    plt.figure(figsize=(16, 8))
-    plt.plot(df[:80])
-    plt.legend(['Actual', 'Predicted'])
+    evaluate_classification(xg_c, file_name, x_train, x_test, y_train, y_test)
+    if save_trained_models: save_model(xg_c, file_name)
+    # y_pred = xg_c.predict(x_test)
+    # df = pd.DataFrame({"Y_test": y_test, "Y_pred": y_pred})
+    # plt.figure(figsize=(16, 8))
+    # plt.plot(df[:80])
+    # plt.legend(['Actual', 'Predicted'])
     # if (display_results): plt.show()
-    plt.clf()
+    # plt.clf()
+
+def run_et(x_train, y_train, x_test, y_test):
+    file_name = "ExtraTrees"
+    if load_saved_models:
+        et = load_model(file_name)
+    else:
+        printlog(f"[{get_ts()}] Preparing ExtraTrees")
+        start_time = time.time()
+        et = ExtraTreesClassifier().fit(x_train, y_train)
+        end_time = time.time()
+        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
+        name = "ExtraTrees"
+        # train_error = metrics.mean_squared_error(y_train, xg_r.predict(x_train), squared=False)
+        # test_error = metrics.mean_squared_error(y_test, xg_r.predict(x_test), squared=False)
+        # printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
+    evaluate_classification(et, file_name, x_train, x_test, y_train, y_test)
+    if save_trained_models: save_model(et, file_name)
 
 def run_dnn(x_train, y_train, x_test, y_test):
     file_name = "Deep Neural Network"
@@ -418,6 +435,7 @@ def run_dnn(x_train, y_train, x_test, y_test):
 def run_models(x_train, y_train, x_test, y_test):
     if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
     if (bool_dnn): run_xgb(x_train, y_train, x_test, y_test)
+    if (bool_dt): run_et(x_train, y_train, x_test, y_test)
     if (bool_dt): run_dt(x_train, y_train, x_test, y_test)
     if (bool_rf): run_rf(x_train, y_train, x_test, y_test)
     if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
