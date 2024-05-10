@@ -516,12 +516,12 @@ kernal_evals = dict()
 
 printlog(f"[{get_ts()}] Mapping outcomes...")
 
-if (generate_statistics_pie):
+if generate_statistics_pie:
     for i in pie_stats:
         pie_plot(data_train, i, 1, 2)
 
 # Process and split dataset
-if (use_single_dataset): 
+if use_single_dataset: 
     if use_multiclass:
         labelencoder = LabelEncoder()
         data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
@@ -550,7 +550,7 @@ if (use_single_dataset):
     y=np.ravel(y)
     y = y.astype('int')
 
-    if (use_kfold):
+    if use_kfold:
         # Assume X and y are your features and labels
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -575,6 +575,7 @@ if (use_single_dataset):
         run_models(x_train, y_train, x_test, y_test)
         run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
+# Evaluate using separate train and test datasets
 else:
     if use_multiclass:
         # data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
@@ -622,7 +623,8 @@ else:
     printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
 
     run_models(x_train, y_train, x_test, y_test)
-    run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    if not use_kfold:
+        run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 # Save all metrics to file
 save_metrics_to_csv(kernal_evals)
