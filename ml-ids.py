@@ -46,13 +46,13 @@ model_save_path = f"{model_save_path}/{model_save_version}"
 eval_average = settings.get('average')
 use_multiclass = settings.get('multiclass')
 
+bool_gnb = settings.get('bool_gnb', True)
+bool_xgb = settings.get('bool_xgb', True)
+bool_dt = settings.get('bool_dt', True)
+bool_rf = settings.get('bool_rf', True)
 bool_lr = settings.get('bool_lr', True)
 bool_knn = settings.get('bool_knn', True)
-bool_gnb = settings.get('bool_gnb', True)
 bool_lin_svc = settings.get('bool_lin_svc', True)
-bool_dt = settings.get('bool_dt', True)
-bool_xgb = settings.get('bool_xgb', True)
-bool_rf = settings.get('bool_rf', True)
 bool_dnn = settings.get('bool_dnn', True)
 
 use_single_dataset = settings.get('use_single_dataset', True)
@@ -350,36 +350,25 @@ def run_rf(x_train, y_train, x_test, y_test):
     features_names = data_train.drop(label_header, axis=1)
     f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
     if save_trained_models: save_model(rf, file_name)
-    
-def run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
-    if load_saved_models:
-        rrf = load_model("Reduced RandomForest")
-    else:
-        printlog(f"[{get_ts()}] Preparing Reduced Random Forest")
-        start_time = time.time()
-        rrf = RandomForestClassifier(**rf_params).fit(x_train_reduced, y_train_reduced)
-        end_time = time.time()
-        printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-    evaluate_classification(rrf, "Reduced RandomForest", x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced)
-    if save_trained_models: save_model(rrf, "Reduced RandomForest")
 
-def run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
+def run_xgb(x_train, y_train, x_test, y_test):
     file_name = "XGBoost"
     if load_saved_models:
         xg_r = load_model(file_name)
     else:
         printlog(f"[{get_ts()}] Preparing XGBoost")
         start_time = time.time()
-        xg_r = xgb.XGBRegressor(**xgb_params).fit(x_train_reduced, y_train_reduced)
+        xg_r = xgb.XGBRegressor(**xgb_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
         name = "XGBOOST"
-        train_error = metrics.mean_squared_error(y_train_reduced, xg_r.predict(x_train_reduced), squared=False)
-        test_error = metrics.mean_squared_error(y_test_reduced, xg_r.predict(x_test_reduced), squared=False)
-        printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
+        # train_error = metrics.mean_squared_error(y_train, xg_r.predict(x_train), squared=False)
+        # test_error = metrics.mean_squared_error(y_test, xg_r.predict(x_test), squared=False)
+        # printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
+    evaluate_classification(xg_r, file_name, x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(xg_r, file_name)
-    y_pred = xg_r.predict(x_test_reduced)
-    df = pd.DataFrame({"Y_test": y_test_reduced, "Y_pred": y_pred})
+    y_pred = xg_r.predict(x_test)
+    df = pd.DataFrame({"Y_test": y_test, "Y_pred": y_pred})
     plt.figure(figsize=(16, 8))
     plt.plot(df[:80])
     plt.legend(['Actual', 'Predicted'])
@@ -427,18 +416,18 @@ def run_dnn(x_train, y_train, x_test, y_test):
     cm_plot(y_test, predicted, name)
 
 def run_models(x_train, y_train, x_test, y_test):
-    if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
-    if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
-    if (bool_lin_svc): run_lin_svc(x_train, y_train, x_test, y_test)
+    if (bool_dnn): run_xgb(x_train, y_train, x_test, y_test)
     if (bool_dt): run_dt(x_train, y_train, x_test, y_test)
     if (bool_rf): run_rf(x_train, y_train, x_test, y_test)
-    if (bool_dnn): run_xgb(x_train, y_train, x_test, y_test)
+    if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
+    if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
+    if (bool_lin_svc): run_lin_svc(x_train, y_train, x_test, y_test)
     if (bool_dnn): run_dnn(x_train, y_train, x_test, y_test)
 
-def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
-    if (bool_rf): run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
-    if (bool_xgb): run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+# def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
+#     if (bool_rf): run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+#     if (bool_xgb): run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
     
 
 
@@ -536,10 +525,10 @@ if use_single_dataset:
     x = scaled_train.drop(label_header , axis = 1).values
     y = scaled_train[label_header].values
 
-    pca = PCA(n_components=feature_reduced_number)
-    pca = pca.fit(x)
-    x_reduced = pca.transform(x)
-    printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
+    # pca = PCA(n_components=feature_reduced_number)
+    # pca = pca.fit(x)
+    # x_reduced = pca.transform(x)
+    # printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
     value_counts = data_train[label_header].value_counts()
     if use_multiclass:
         for encoded_value, count in value_counts.items():
@@ -551,7 +540,7 @@ if use_single_dataset:
     y = y.astype('int')
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
-    x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
+    # x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
 
     unique_attack_cats = np.unique(y_train)
         
@@ -563,7 +552,7 @@ if use_single_dataset:
     if use_multiclass:
         x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
     run_models(x_train, y_train, x_test, y_test)
-    run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    # run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 # Evaluate using separate train and test datasets
 else:
@@ -605,15 +594,15 @@ else:
     y_test = scaled_test[label_header].values
     y_test = y_test.astype('int')
 
-    pca_test = PCA(n_components=feature_reduced_number)
-    x_test_reduced = pca_test.fit_transform(x_test)
-    y_test_reduced = y_test
+    # pca_test = PCA(n_components=feature_reduced_number)
+    # x_test_reduced = pca_test.fit_transform(x_test)
+    # y_test_reduced = y_test
 
-    printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
-    printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
+    # printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
+    # printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
 
     run_models(x_train, y_train, x_test, y_test)
-    run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
+    # run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 # Save all metrics to file
 save_metrics_to_csv(kernal_evals)
