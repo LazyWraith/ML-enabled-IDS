@@ -37,7 +37,33 @@
       "pie_stats": [["Label", "Label"]],
       "feature_reduced_number": 40
     },
+    "CICIDS2017-full": {
+      "train_path": "./input/CICIDS2017/CICIDS2017.csv",
+      "test_path": "",
+      "read_cols_from_csv": true,
+      "cat_cols": ["Label"],
+      "drop_cols": ["Fwd Header Length.1"],
+      "obj_cols": [],
+      "label_header": "Label",
+      "label_normal_value": "BENIGN",
+      "resampling_job":[[8,5000],[13,5000],[9,5000],[14,5000],[12,5000],[1,5000]],
+      "pie_stats": [["Label", "Label"]],
+      "feature_reduced_number": 40
+    },
     "LocalLANCapture": {
+      "train_path": "./input/LocalLANCapture/LocalLAN-1.csv",
+      "test_path": "./input/LocalLANCapture/LocalLAN-1.csv",
+      "read_cols_from_csv": true,
+      "cat_cols": ["Label"],
+      "drop_cols": [],
+      "obj_cols": [],
+      "label_header": "Label",
+      "label_normal_value": "BENIGN",
+      "resampling_job":[],
+      "pie_stats": [["Label", "Label"]],
+      "feature_reduced_number": 40
+    },
+    "LocalLANCapture-TEST": {
       "train_path": "./input/LocalLANCapture/LocalLAN-1.csv",
       "test_path": "./input/LocalLANCapture/LocalLAN-1.csv",
       "read_cols_from_csv": true,
