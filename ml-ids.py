@@ -48,11 +48,12 @@ use_multiclass = settings.get('multiclass')
 
 bool_gnb = settings.get('bool_gnb', True)
 bool_xgb = settings.get('bool_xgb', True)
+bool_et = settings.get('bool_et', True)
 bool_dt = settings.get('bool_dt', True)
 bool_rf = settings.get('bool_rf', True)
 bool_lr = settings.get('bool_lr', True)
-bool_knn = settings.get('bool_knn', True)
 bool_lin_svc = settings.get('bool_lin_svc', True)
+bool_knn = settings.get('bool_knn', True)
 bool_dnn = settings.get('bool_dnn', True)
 
 use_single_dataset = settings.get('use_single_dataset', True)
@@ -146,11 +147,11 @@ def roc_plot(fpr, tpr, label1 = 'ROC Curve', label2='Random guess', title=''):
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{title}_roc.png", flush=True)
     plt.clf()
 
-def preprocess(dataframe, obj_cols_):
+def preprocess(dataframe):
     dataframe = dataframe.drop(drop_cols, axis=1)
     df_num = dataframe.drop(cat_cols, axis=1)
     num_cols = df_num.select_dtypes(include=[np.number]).columns
-    dataframe = pd.get_dummies(dataframe, columns=obj_cols_)
+    dataframe = pd.get_dummies(dataframe, columns=obj_cols)
     df_num = dataframe[num_cols]
     labels = dataframe[label_header]
     
@@ -160,10 +161,11 @@ def preprocess(dataframe, obj_cols_):
     # Replace infinity values with 0
     df_num.replace([np.inf, -np.inf], 0, inplace=True)
     
-    std_scaler = RobustScaler()
-    std_scaler_temp = std_scaler.fit_transform(df_num)
-    std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
-    dataframe = pd.concat([std_df, labels], axis=1)
+    # std_scaler = RobustScaler()
+    # std_scaler_temp = std_scaler.fit_transform(df_num)
+    # std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
+    # dataframe = pd.concat([std_df, labels], axis=1)
+    dataframe = pd.concat([df_num, labels], axis=1)
     return dataframe
 
 def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
@@ -207,24 +209,25 @@ def smote_balancing(x_train, y_train, jobs):
 def evaluate_classification(model, name, x_train, x_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
-    train_predict = model.predict(x_train)
+    # train_predict = model.predict(x_train)
     test_predict = model.predict(x_test)
 
-    train_accuracy = metrics.accuracy_score(y_train, train_predict)
+    # train_accuracy = metrics.accuracy_score(y_train, train_predict)
     test_accuracy = metrics.accuracy_score(y_test, test_predict)
     
-    train_precision = metrics.precision_score(y_train, train_predict, average=eval_average)
+    # train_precision = metrics.precision_score(y_train, train_predict, average=eval_average)
     test_precision = metrics.precision_score(y_test, test_predict, average=eval_average)
     
-    train_recall = metrics.recall_score(y_train, train_predict, average=eval_average)
+    # train_recall = metrics.recall_score(y_train, train_predict, average=eval_average)
     test_recall = metrics.recall_score(y_test, test_predict, average=eval_average)
 
-    train_f1 = metrics.f1_score(y_train, train_predict, average=eval_average)
+    # train_f1 = metrics.f1_score(y_train, train_predict, average=eval_average)
     test_f1 = metrics.f1_score(y_test, test_predict, average=eval_average)
 
     report = metrics.classification_report(y_test, test_predict)
     printlog(report)
-    kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall, train_f1, test_f1]
+    # kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall, train_f1, test_f1]
+    kernal_evals[str(name)] = [test_accuracy, test_precision, test_recall, test_f1]
     
     end_time = time.time()
     printlog(f"[{get_ts()}] Testing time: {(end_time - start_time):.4f}")
@@ -239,7 +242,7 @@ def evaluate_classification(model, name, x_train, x_test, y_train, y_test):
     except Exception as e:
         printlog(f"[{get_ts()}] Failed to create ROC for: {name}!")
         # traceback.print_exc()
-    return train_predict, test_predict
+    return test_predict
 
 def f_importances(coef, names, top=-1, title="untitled"):
     imp = coef
@@ -429,18 +432,17 @@ def run_dnn(x_train, y_train, x_test, y_test):
 
     actual = y_test
     # predicted = dnn.predict(x_test)
-    predicted = dnn.predict(x_test)
-    cm_plot(y_test, predicted, name)
+    evaluate_classification(dnn, file_name, x_train, x_test, y_train, y_test)
 
 def run_models(x_train, y_train, x_test, y_test):
     if (bool_gnb): run_gnb(x_train, y_train, x_test, y_test)
-    if (bool_dnn): run_xgb(x_train, y_train, x_test, y_test)
-    if (bool_dt): run_et(x_train, y_train, x_test, y_test)
+    if (bool_xgb): run_xgb(x_train, y_train, x_test, y_test)
+    if (bool_et): run_et(x_train, y_train, x_test, y_test)
     if (bool_dt): run_dt(x_train, y_train, x_test, y_test)
     if (bool_rf): run_rf(x_train, y_train, x_test, y_test)
     if (bool_lr): run_lr(x_train, y_train, x_test, y_test)
-    if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_lin_svc): run_lin_svc(x_train, y_train, x_test, y_test)
+    if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_dnn): run_dnn(x_train, y_train, x_test, y_test)
 
 # def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
@@ -538,7 +540,7 @@ if use_single_dataset:
         data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
         data_train.loc[data_train[label_header] != 0, label_header] = 1
     
-    scaled_train = preprocess(data_train, obj_cols)
+    scaled_train = preprocess(data_train)
 
     x = scaled_train.drop(label_header , axis = 1).values
     y = scaled_train[label_header].values
@@ -561,7 +563,7 @@ if use_single_dataset:
     # x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
 
     unique_attack_cats = np.unique(y_train)
-        
+    
     label_encoder = LabelEncoder()
     y_train_encoded = label_encoder.fit_transform(y_train)
     y_test_encoded = label_encoder.transform(y_test)
@@ -597,7 +599,7 @@ else:
         data_test.loc[data_test[label_header] != 0, label_header] = 1
     # Process training set
     
-    scaled_train = preprocess(data_train, obj_cols)
+    scaled_train = preprocess(data_train)
     x_train = scaled_train.drop(label_header, axis=1).values
     y_train = scaled_train[label_header].values
     y_train = y_train.astype('int')
@@ -607,7 +609,7 @@ else:
     y_train_reduced = y_train
 
     # Process testing set
-    scaled_test = preprocess(data_test, obj_cols)
+    scaled_test = preprocess(data_test)
     x_test = scaled_test.drop(label_header, axis=1).values
     y_test = scaled_test[label_header].values
     y_test = y_test.astype('int')
