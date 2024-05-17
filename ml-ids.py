@@ -181,9 +181,7 @@ def save_metrics_to_csv(eval_metrics, filepath=f"{output_dir}/results.csv"):
         csv_writer = csv.writer(csvfile)
 
         # Write the header row
-        header = ['Model', 'Train Accuracy', 'Test Accuracy', 'Train Precision', 'Test Precision',
-                  'Train Recall', 'Test Recall', 'Train F1 Score', 'Test F1 Score',
-                  'Train F-Score', 'Test F-Score']
+        header = ['Model', 'Test Accuracy', 'Test Precision', 'Test Recall', 'Test F1 Score']
         csv_writer.writerow(header)
 
         # Write metrics for each model
@@ -209,24 +207,14 @@ def smote_balancing(x_train, y_train, jobs):
 def evaluate_classification(model, name, x_train, x_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
-    # train_predict = model.predict(x_train)
     test_predict = model.predict(x_test)
-
-    # train_accuracy = metrics.accuracy_score(y_train, train_predict)
     test_accuracy = metrics.accuracy_score(y_test, test_predict)
-    
-    # train_precision = metrics.precision_score(y_train, train_predict, average=eval_average)
     test_precision = metrics.precision_score(y_test, test_predict, average=eval_average)
-    
-    # train_recall = metrics.recall_score(y_train, train_predict, average=eval_average)
     test_recall = metrics.recall_score(y_test, test_predict, average=eval_average)
-
-    # train_f1 = metrics.f1_score(y_train, train_predict, average=eval_average)
     test_f1 = metrics.f1_score(y_test, test_predict, average=eval_average)
 
     report = metrics.classification_report(y_test, test_predict)
     printlog(report)
-    # kernal_evals[str(name)] = [train_accuracy, test_accuracy, train_precision, test_precision, train_recall, test_recall, train_f1, test_f1]
     kernal_evals[str(name)] = [test_accuracy, test_precision, test_recall, test_f1]
     
     end_time = time.time()
@@ -364,19 +352,8 @@ def run_xgb(x_train, y_train, x_test, y_test):
         xg_c = xgb.XGBClassifier(**xgb_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-        name = "XGBOOST"
-        # train_error = metrics.mean_squared_error(y_train, xg_r.predict(x_train), squared=False)
-        # test_error = metrics.mean_squared_error(y_test, xg_r.predict(x_test), squared=False)
-        # printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
     evaluate_classification(xg_c, file_name, x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(xg_c, file_name)
-    # y_pred = xg_c.predict(x_test)
-    # df = pd.DataFrame({"Y_test": y_test, "Y_pred": y_pred})
-    # plt.figure(figsize=(16, 8))
-    # plt.plot(df[:80])
-    # plt.legend(['Actual', 'Predicted'])
-    # if (display_results): plt.show()
-    # plt.clf()
 
 def run_et(x_train, y_train, x_test, y_test):
     file_name = "ExtraTrees"
@@ -388,16 +365,11 @@ def run_et(x_train, y_train, x_test, y_test):
         et = ExtraTreesClassifier().fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
-        name = "ExtraTrees"
-        # train_error = metrics.mean_squared_error(y_train, xg_r.predict(x_train), squared=False)
-        # test_error = metrics.mean_squared_error(y_test, xg_r.predict(x_test), squared=False)
-        # printlog(f"[{get_ts()}] " + "Training Error " + str(name) + " {}  Test error ".format(train_error) + str(name) + " {}".format(test_error))
     evaluate_classification(et, file_name, x_train, x_test, y_train, y_test)
     if save_trained_models: save_model(et, file_name)
 
 def run_dnn(x_train, y_train, x_test, y_test):
     file_name = "Deep Neural Network"
-    name = "DNN"
     if load_saved_models:
         dnn = load_model(file_name)
     else:
@@ -545,10 +517,6 @@ if use_single_dataset:
     x = scaled_train.drop(label_header , axis = 1).values
     y = scaled_train[label_header].values
 
-    # pca = PCA(n_components=feature_reduced_number)
-    # pca = pca.fit(x)
-    # x_reduced = pca.transform(x)
-    # printlog(f"[{get_ts()}] Number of original features is {x.shape[1]} and of reduced features is {x_reduced.shape[1]}")
     value_counts = data_train[label_header].value_counts()
     if use_multiclass:
         for encoded_value, count in value_counts.items():
@@ -560,7 +528,6 @@ if use_single_dataset:
     y = y.astype('int')
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_ratio, random_state=rndm_state)
-    # x_train_reduced, x_test_reduced, y_train_reduced, y_test_reduced = train_test_split(x_reduced, y, test_size=split_test_ratio, random_state=rndm_state)
 
     unique_attack_cats = np.unique(y_train)
     
@@ -572,19 +539,10 @@ if use_single_dataset:
     if use_multiclass:
         x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
     run_models(x_train, y_train, x_test, y_test)
-    # run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 # Evaluate using separate train and test datasets
 else:
     if use_multiclass:
-        # data_train[label_header] = (data_train[label_header] == label_normal_value).astype(int)
-        # attack_classes = data_train[data_train[label_header] != 0][label_header].unique()
-        # for i, attack_class in enumerate(attack_classes, start=1):
-        #     data_train.loc[data_train[label_header] == attack_class, label_header] = i
-
-        # # Print the modified DataFrame
-        # print(data_train[label_header].value_counts())
-
         labelencoder = LabelEncoder()
         data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
         data_test.iloc[:, -1] = labelencoder.fit_transform(data_test.iloc[:, -1])
@@ -614,15 +572,7 @@ else:
     y_test = scaled_test[label_header].values
     y_test = y_test.astype('int')
 
-    # pca_test = PCA(n_components=feature_reduced_number)
-    # x_test_reduced = pca_test.fit_transform(x_test)
-    # y_test_reduced = y_test
-
-    # printlog(f"[{get_ts()}] Training set original features: {x_train.shape[1]}, reduced features: {x_train_reduced.shape[1]}")
-    # printlog(f"[{get_ts()}] Testing set original features: {x_test.shape[1]}, reduced features: {x_test_reduced.shape[1]}")
-
     run_models(x_train, y_train, x_test, y_test)
-    # run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
 
 # Save all metrics to file
 save_metrics_to_csv(kernal_evals)
