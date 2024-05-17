@@ -362,7 +362,7 @@ def run_et(x_train, y_train, x_test, y_test):
     else:
         printlog(f"[{get_ts()}] Preparing ExtraTrees")
         start_time = time.time()
-        et = ExtraTreesClassifier().fit(x_train, y_train)
+        et = ExtraTreesClassifier(**et_params).fit(x_train, y_train)
         end_time = time.time()
         printlog(f"[{get_ts()}] Training time: {(end_time - start_time):.4f}")
     evaluate_classification(et, file_name, x_train, x_test, y_train, y_test)
@@ -441,14 +441,14 @@ if dataset_name in datasets_config:
     # Dataset Headers
     read_cols_from_csv = config.get("read_cols_from_csv", True)
     if (not read_cols_from_csv):
-        columns = config["columns"]
-    cat_cols = config["cat_cols"]
-    obj_cols = config["obj_cols"]
-    drop_cols = config["drop_cols"]
-    label_header = config["label_header"]
-    label_normal_value = config["label_normal_value"]
-    pie_stats = config["pie_stats"]
-    feature_reduced_number = config['feature_reduced_number']
+        columns = config.get("columns")
+    cat_cols = config.get("cat_cols")
+    obj_cols = config.get("obj_cols")
+    drop_cols = config.get("drop_cols")
+    label_header = config.get("label_header")
+    label_normal_value = config.get("label_normal_value")
+    pie_stats = config.get("pie_stats")
+    feature_reduced_number = config.get('feature_reduced_number')
     resampling_job = config.get('resampling_job')
     
 else:
@@ -463,6 +463,7 @@ knn_params = hyperparameters.get("knn_params", {})
 gnb_params = hyperparameters.get("gnb_params", {})
 lin_svc_params = hyperparameters.get("lin_svc_params", {})
 dt_params = hyperparameters.get("dt_params", {})
+et_params = hyperparameters.get("et_params", {})
 xgb_params = hyperparameters.get("xgb_params", {})
 rf_params = hyperparameters.get("rf_params", {})
 dnn_params = hyperparameters.get("dnn_params", {})
