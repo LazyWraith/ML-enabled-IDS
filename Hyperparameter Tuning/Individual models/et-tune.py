@@ -106,9 +106,9 @@ study_et = optuna.create_study(direction='maximize')
 study_et.optimize(lambda trial: objective(trial, "et"), n_trials=500)
 best_params_et = study_et.best_params
 
-print("Best Hyperparameters for DecisionTree:", best_params_et)
+print("Best Hyperparameters for ExtraTree:", best_params_et)
 best_params = {
-    "DecisionTree": best_params_et
+    "ExtraTree": best_params_et
 }
 
 with open(f"{output_dir}/{dataset_name}_et_hyperparameters.json", "w") as f:
