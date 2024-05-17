@@ -93,10 +93,8 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_r
 
 def objective(trial, model_name):
     params = {
-        'n_estimators': trial.suggest_int('n_estimators', 50, 200),
-        'max_depth': trial.suggest_int('max_depth', 3, 10),
-        # 'learning_rate': trial.suggest_loguniform('learning_rate', 0.001, 0.1),
-        'learning_rate': trial.suggest_float('learning_rate', 0.001, 0.1, log=True),
+        'n_estimators': trial.suggest_int('n_estimators', 10, 100),
+        'max_depth': trial.suggest_int('max_depth', 3, 16)
     }
     model = xgb.XGBClassifier(**params)
 
@@ -107,7 +105,7 @@ def objective(trial, model_name):
 
 # # Optimize hyperparameters for XGBoost
 study_xgb = optuna.create_study(direction='maximize')
-study_xgb.optimize(lambda trial: objective(trial, "xgb"), n_trials=1000)
+study_xgb.optimize(lambda trial: objective(trial, "xgb"), n_trials=500)
 best_params_xgb = study_xgb.best_params
 
 print("Best Hyperparameters for XGBoost:", best_params_xgb)

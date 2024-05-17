@@ -103,7 +103,7 @@ def objective(trial, model_name):
     return accuracy
 
 study_knn = optuna.create_study(direction='maximize')
-study_knn.optimize(lambda trial: objective(trial, "knn"), n_trials=50)
+study_knn.optimize(lambda trial: objective(trial, "knn"), n_trials=30)
 best_params_knn = study_knn.best_params
 
 print("Best Hyperparameters for K-Nearest Neighbors:", best_params_knn)
