@@ -538,7 +538,8 @@ if use_single_dataset:
 
     # SMOTE
     if use_multiclass:
-        x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
+        x_train, y_train = SMOTE.fit_resample(x_train, y_train)
+        # x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
     run_models(x_train, y_train, x_test, y_test)
 
 # Evaluate using separate train and test datasets
