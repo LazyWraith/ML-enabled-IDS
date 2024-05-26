@@ -1,7 +1,8 @@
 import pandas as pd
 
-in_file = './Captures/LocalLAN5h.csv'
-out_file = 'CIC_LocalLAN5h.csv'
+in_file = './Captures/DoS/hping3 p80.csv'
+out_file = './Captures/DoS/cic_hping3_p80.csv'
+label = 'DoS'
 
 # Read the source CSV file
 df = pd.read_csv(in_file)
@@ -94,8 +95,8 @@ df = df[list(column_mapping.keys())]
 # Rename columns
 df.rename(columns=column_mapping, inplace=True)
 
-# Add Label column with "PortScan"
-df['Label'] = 'BENIGN'
+# Add Label column
+df['Label'] = label
 
 # Write result to a new CSV file
 df.to_csv(out_file, index=False)
