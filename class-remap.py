@@ -37,15 +37,6 @@ class_mapping = {
 # Map the original classes to new classes, defaulting to 'Others' for any undefined classes
 df.iloc[:, -1] = df.iloc[:, -1].apply(lambda x: class_mapping.get(x, 'Others'))
 
-# Encode the new classes into integers
-labelencoder = LabelEncoder()
-df.iloc[:, -1] = labelencoder.fit_transform(df.iloc[:, -1])
-
-# Create the new label mapping dictionary
-new_label_mapping = {index: label for index, label in enumerate(labelencoder.classes_)}
-
-# Output the new label mapping
-print(new_label_mapping)
 print(df['Label'].value_counts())
 
-# df.to_csv(out_file)
+df.to_csv(out_file)
