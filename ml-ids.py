@@ -207,16 +207,19 @@ def smote_balancing(x_train, y_train, jobs):
 def evaluate_classification(model, name, x_train, x_test, y_train, y_test):
     printlog(f"[{get_ts()}] Evaluating classifier: {name}...")
     start_time = time.time()
-    test_predict = model.predict(x_test)
-    test_accuracy = metrics.accuracy_score(y_test, test_predict)
-    test_precision = metrics.precision_score(y_test, test_predict, average=eval_average)
-    test_recall = metrics.recall_score(y_test, test_predict, average=eval_average)
-    test_f1 = metrics.f1_score(y_test, test_predict, average=eval_average)
+    try:
+        test_predict = model.predict(x_test)
+        test_accuracy = metrics.accuracy_score(y_test, test_predict)
+        test_precision = metrics.precision_score(y_test, test_predict, average=eval_average)
+        test_recall = metrics.recall_score(y_test, test_predict, average=eval_average)
+        test_f1 = metrics.f1_score(y_test, test_predict, average=eval_average)
 
-    report = metrics.classification_report(y_test, test_predict)
-    printlog(report)
-    kernal_evals[str(name)] = [test_accuracy, test_precision, test_recall, test_f1]
-    
+        report = metrics.classification_report(y_test, test_predict)
+        printlog(report)
+        kernal_evals[str(name)] = [test_accuracy, test_precision, test_recall, test_f1]
+    except Exception as e:
+        traceback.print_exc()
+        printlog(f"An error occurred while attempting to evaluate model: {name}")
     end_time = time.time()
     printlog(f"[{get_ts()}] Testing time: {(end_time - start_time):.4f}")
 
@@ -538,7 +541,8 @@ if use_single_dataset:
 
     # SMOTE
     if use_multiclass:
-        x_train, y_train = SMOTE.fit_resample(x_train, y_train)
+        smote = SMOTE(random_state=42)
+        x_train, y_train = smote.fit_resample(x_train, y_train)
         # x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
     run_models(x_train, y_train, x_test, y_test)
 
