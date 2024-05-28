@@ -1,5 +1,4 @@
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 
 in_file = './input/CICIDS2017/small-CICIDS2017.csv'
 out_file = './input/CICIDS2017/small-CICIDS2017-remapped.csv'
@@ -8,14 +7,7 @@ df = pd.read_csv(in_file)
 df.columns = df.columns.str.strip().tolist()
 print(df['Label'].value_counts())
 
-original_classes = [
-    'BENIGN', 'DoS Hulk', 'PortScan', 'DDoS', 'DoS GoldenEye', 'FTP-Patator', 
-    'SSH-Patator', 'DoS slowloris', 'DoS Slowhttptest', 'Bot', 
-    'Web Attack - Brute Force', 'Web Attack - XSS', 'Infiltration', 
-    'Web Attack - Sql Injection', 'Heartbleed'
-]
-
-# Define the new class mapping
+# Define attack class mapping for CICIDS2017
 class_mapping = {
     'BENIGN': 'BENIGN',
     'Bot': 'Bot',
