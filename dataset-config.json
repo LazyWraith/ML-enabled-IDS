@@ -25,7 +25,7 @@
       "feature_reduced_number": 20
     },
     "CICIDS2017": {
-      "train_path": "./input/CICIDS2017/small-CICIDS2017.csv",
+      "train_path": "./input/CICIDS2017/small-CICIDS2017-remapped.csv",
       "test_path": "",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
@@ -35,7 +35,16 @@
       "label_normal_value": "BENIGN",
       "resampling_job":[[8,5000],[13,5000],[9,5000],[14,5000],[12,5000],[1,5000]],
       "pie_stats": [["Label", "Label"]],
-      "feature_reduced_number": 40
+      "feature_reduced_number": 40,
+      "class_mapping": {
+        "BENIGN": 0,
+        "Bot": 1,
+        "DoS": 2,
+        "BruteForce": 3,
+        "PortScan": 4,
+        "Web Attack": 5,
+        "Others": 6
+      }
     },
     "CICIDS2017-full": {
       "train_path": "./input/CICIDS2017/CICIDS2017.csv",
@@ -48,7 +57,16 @@
       "label_normal_value": "BENIGN",
       "resampling_job":[[8,5000],[13,5000],[9,5000],[14,5000],[12,5000],[1,5000]],
       "pie_stats": [["Label", "Label"]],
-      "feature_reduced_number": 40
+      "feature_reduced_number": 40,
+      "class_mapping": {
+        "BENIGN": 0,
+        "Bot": 1,
+        "DoS": 2,
+        "BruteForce": 3,
+        "PortScan": 4,
+        "Web Attack": 5,
+        "Others": 6
+      }
     },
     "LocalLANCapture": {
       "train_path": "./input/LocalLANCapture/LocalLAN-1.csv",
@@ -61,7 +79,16 @@
       "label_normal_value": "BENIGN",
       "resampling_job":[],
       "pie_stats": [["Label", "Label"]],
-      "feature_reduced_number": 40
+      "feature_reduced_number": 40,
+      "class_mapping": {
+        "BENIGN": 0,
+        "Bot": 1,
+        "DoS": 2,
+        "BruteForce": 3,
+        "PortScan": 4,
+        "Web Attack": 5,
+        "Others": 6
+      }
     },
     "LocalLANCapture-TEST": {
       "train_path": "./input/LocalLANCapture/LocalLAN-1.csv",
@@ -74,7 +101,16 @@
       "label_normal_value": "BENIGN",
       "resampling_job":[],
       "pie_stats": [["Label", "Label"]],
-      "feature_reduced_number": 40
+      "feature_reduced_number": 40,
+      "class_mapping": {
+        "BENIGN": 0,
+        "Bot": 1,
+        "DoS": 2,
+        "BruteForce": 3,
+        "PortScan": 4,
+        "Web Attack": 5,
+        "Others": 6
+      }
     }
   }
   
