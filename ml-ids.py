@@ -39,12 +39,11 @@ generate_statistics_pie = settings.get('generate_statistics_pie', True)
 dataset_name = settings.get('dataset_name', 'UNSW-NB15')
 output_dir = settings.get('output_dir')
 load_saved_models = settings.get('load_saved_models', True)
-save_trained_models = not load_saved_models
+save_trained_models = settings.get('save_trained_models', False)
 model_save_path = settings.get('model_save_path', './Saved models')
 model_save_version = settings.get('model_save_version')
 model_save_path = f"{model_save_path}/{model_save_version}"
 eval_average = settings.get('average')
-use_multiclass = settings.get('multiclass')
 
 bool_gnb = settings.get('bool_gnb', True)
 bool_xgb = settings.get('bool_xgb', True)
@@ -92,6 +91,10 @@ def load_model(name):
         model = pickle.load(f)
     return model
 
+def map_classes(df):
+    df.iloc[:, -1] = df.iloc[:, -1].apply(lambda x: class_mapping.get(x, 'Others'))
+    return df
+
 def pie_plot(df, cols_list, rows, cols):
     fig, axes = plt.subplots(rows, cols)
     for ax, col in zip(axes.ravel(), cols_list):
@@ -119,20 +122,19 @@ def cm_plot(y_test, y_predict, name):
     print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
     plt.clf()
     
-    if use_multiclass:
-        try:
-            cm=metrics.confusion_matrix(y_test, y_predict)
-            f,ax=plt.subplots(figsize=(5,5))
-            sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
-            plt.xlabel("y_pred")
-            plt.ylabel("y_true")
-            # plt.show()
-            plt.savefig(os.path.join(output_dir, f"{counter}{name}_multi_confusion_matrix.png"))
-            print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_multi_confusion_matrix.png", flush=True)
-            plt.clf()
-        except Exception as e:
-            print(e)
-            print(f"Unable to plot CM for {name}")
+    try:
+        cm=metrics.confusion_matrix(y_test, y_predict)
+        f,ax=plt.subplots(figsize=(5,5))
+        sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
+        plt.xlabel("y_pred")
+        plt.ylabel("y_true")
+        # plt.show()
+        plt.savefig(os.path.join(output_dir, f"{counter}{name}_multi_confusion_matrix.png"))
+        print(f"[{get_ts()}] Saved results to {output_dir}/{counter}{name}_multi_confusion_matrix.png", flush=True)
+        plt.clf()
+    except Exception as e:
+        print(e)
+        print(f"Unable to plot CM for {name}")
 
 def roc_plot(fpr, tpr, label1 = 'ROC Curve', label2='Random guess', title=''):
     # Plot ROC curve
@@ -420,12 +422,6 @@ def run_models(x_train, y_train, x_test, y_test):
     if (bool_knn): run_knn(x_train, y_train, x_test, y_test)
     if (bool_dnn): run_dnn(x_train, y_train, x_test, y_test)
 
-# def run_models_reduced(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced):
-#     if (bool_rf): run_rrf(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
-#     if (bool_xgb): run_xgb(x_train_reduced, y_train_reduced, x_test_reduced, y_test_reduced)
-    
-
-
 
 #-------------------------------- MAIN --------------------------------
 
@@ -453,6 +449,7 @@ if dataset_name in datasets_config:
     pie_stats = config.get("pie_stats")
     feature_reduced_number = config.get('feature_reduced_number')
     resampling_job = config.get('resampling_job')
+    class_mapping = config.get("class_mapping", {})
     
 else:
     print("Invalid dataset name!")
@@ -487,7 +484,6 @@ else:
     data_test = data_train
     
 if (read_cols_from_csv): 
-    # columns = data_train.columns.tolist()
     # Removes white spaces
     columns = data_train.columns.str.strip().tolist()
 
@@ -496,7 +492,6 @@ data_train.columns = columns
 data_test.columns = columns
 data_train.info()
 if not use_single_dataset: data_test.info()
-# data_train.describe().style.background_gradient(cmap='Blues').set_properties(**{'font-family': 'Segoe UI'})
 kernal_evals = dict()
 
 printlog(f"[{get_ts()}] Mapping outcomes...")
@@ -507,14 +502,8 @@ if generate_statistics_pie:
 
 # Process and split dataset
 if use_single_dataset: 
-    if use_multiclass:
-        labelencoder = LabelEncoder()
-        data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
-        label_mapping = {index: label for index, label in enumerate(labelencoder.classes_)}
-
-    else:
-        data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-        data_train.loc[data_train[label_header] != 0, label_header] = 1
+    data_train = map_classes(data_train)
+    label_mapping = class_mapping
     
     scaled_train = preprocess(data_train)
 
@@ -522,12 +511,11 @@ if use_single_dataset:
     y = scaled_train[label_header].values
 
     value_counts = data_train[label_header].value_counts()
-    if use_multiclass:
-        for encoded_value, count in value_counts.items():
-            original_label = label_mapping[encoded_value].replace('�', '-')
-            printlog(f"{original_label} ({encoded_value}): {count}")
-    else:
-        printlog(value_counts)
+    # for encoded_value, count in value_counts.items():
+    #     original_label = label_mapping[encoded_value].replace('�', '-')
+    #     printlog(f"{original_label} ({encoded_value}): {count}")
+    printlog(value_counts)
+    
     y=np.ravel(y)
     y = y.astype('int')
 
@@ -540,37 +528,20 @@ if use_single_dataset:
     y_test_encoded = label_encoder.transform(y_test)
 
     # SMOTE
-    if use_multiclass:
-        smote = SMOTE(random_state=42)
-        x_train, y_train = smote.fit_resample(x_train, y_train)
-        # x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
+    smote = SMOTE(random_state=42)
+    x_train, y_train = smote.fit_resample(x_train, y_train)
+    # x_train, y_train = smote_balancing(x_train, y_train, resampling_job)
     run_models(x_train, y_train, x_test, y_test)
 
 # Evaluate using separate train and test datasets
 else:
-    if use_multiclass:
-        labelencoder = LabelEncoder()
-        data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
-        data_test.iloc[:, -1] = labelencoder.fit_transform(data_test.iloc[:, -1])
-        label_mapping = {index: label for index, label in enumerate(labelencoder.classes_)}
-
-    else:
-        # binary classification
-        data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-        data_train.loc[data_train[label_header] != 0, label_header] = 1
-
-        data_test.loc[data_test[label_header] == label_normal_value, label_header] = 0
-        data_test.loc[data_test[label_header] != 0, label_header] = 1
-    # Process training set
+    data_train = map_classes(data_train)
+    label_mapping = class_mapping
     
     scaled_train = preprocess(data_train)
     x_train = scaled_train.drop(label_header, axis=1).values
     y_train = scaled_train[label_header].values
     y_train = y_train.astype('int')
-
-    pca_train = PCA(n_components=feature_reduced_number)
-    x_train_reduced = pca_train.fit_transform(x_train)
-    y_train_reduced = y_train
 
     # Process testing set
     scaled_test = preprocess(data_test)
