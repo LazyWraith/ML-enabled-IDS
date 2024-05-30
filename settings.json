@@ -2,7 +2,7 @@
   "display_results": false,
   "generate_statistics_pie": true,
   "dataset_name": "CICIDS2017",
-  "output_dir": "./output/debug-CICIDS2017 v3.1 6-4-remap-multiclass",
+  "output_dir": "./output/debug-multiprocessing-CICIDS2017 v3.1 6-4-remap-multiclass",
   "load_saved_models": false,
   "save_trained_models": true,
   "model_save_path": "./Saved models/CICIDS2017",
@@ -20,5 +20,6 @@
   "use_single_dataset": true,
   "split_train_ratio": 0.6,
   "split_test_ratio": 0.4,
-  "rndm_state": 42
+  "rndm_state": 42,
+  "max_workers": 6
 }
