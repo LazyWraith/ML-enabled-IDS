@@ -44,7 +44,8 @@
         "PortScan": 4,
         "Web Attack": 5,
         "Others": 6
-      }
+      },
+      "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
     },
     "CICIDS2017-full": {
       "train_path": "./input/CICIDS2017/CICIDS2017.csv",
@@ -66,7 +67,8 @@
         "PortScan": 4,
         "Web Attack": 5,
         "Others": 6
-      }
+      },
+      "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
     },
     "LocalLANCapture": {
       "train_path": "./input/LocalLANCapture/LocalLAN-1.csv",
@@ -88,7 +90,8 @@
         "PortScan": 4,
         "Web Attack": 5,
         "Others": 6
-      }
+      },
+      "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
     },
     "LocalLANCapture-TEST": {
       "train_path": "./input/LocalLANCapture/LocalLAN-1.csv",
@@ -110,7 +113,8 @@
         "PortScan": 4,
         "Web Attack": 5,
         "Others": 6
-      }
+      },
+      "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
     }
   }
   
