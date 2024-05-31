@@ -111,6 +111,7 @@ class Ml:
             self.resampling_job = config.get('resampling_job')
             self.class_mapping = config.get("class_mapping", {})
             self.num_classes = len(self.class_mapping)
+            self.target_names = config.get("target_names")
             print(f"Dataset num_classes: {self.num_classes}")
             
         else:
@@ -254,20 +255,18 @@ class Ml:
             test_recall = metrics.recall_score(y_test, test_predict, average=self.eval_average)
             test_f1 = metrics.f1_score(y_test, test_predict, average=self.eval_average)
 
-            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, test_predict))
+            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, test_predict, target_names=self.target_names))
             
-            # self.printlog(f"Evaluation Results for {name}:")
-            self.printlog(report)
         except Exception as e:
             traceback.print_exc()
-            self.self.printlog(f"An error occurred while attempting to evaluate model: {name}")
-        end_time = time.time()
-        test_time = f"[{self.get_ts()}] Testing time: {(end_time - start_time):.4f}"
-        report = report + "\n" + test_time
-        self.printlog(test_time)
-        self.kernal_evals[str(name)] = [test_accuracy, test_precision, test_recall, test_f1]
+            self.printlog(f"An error occurred while attempting to evaluate model: {name}")
+        test_time = time.time() - start_time
+        test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
+        report = report + "\n" + test_time_str
+        # self.printlog(test_time_str)
+        eval_metrics = [str(name), test_accuracy, test_precision, test_recall, test_f1]
         self.cm_plot(y_test, test_predict, name)
-        return test_predict, report
+        return test_predict, report, eval_metrics, test_time
 
     def f_importances(self, coef, names, top=-1, title="untitled"):
         imp = coef
@@ -295,13 +294,15 @@ class Ml:
             self.printlog(f"[{self.get_ts()}] Preparing Logistic Regression")
             start_time = time.time()
             lr = LogisticRegression(**self.lr_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-        _, report = self.evaluate_classification(lr, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+        _, report, eval_metrics, test_time = self.evaluate_classification(lr, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         if self.save_trained_models: self.save_model(lr, file_name)
-        return report
+        return report, eval_metrics
 
     def run_knn(self, x_train, y_train, x_test, y_test):
         file_name = "KNeighborsClassifier"
@@ -311,14 +312,16 @@ class Ml:
             self.printlog(f"[{self.get_ts()}] Preparing KNeighborsClassifier")
             start_time = time.time()
             knn = KNeighborsClassifier(**self.knn_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
-        _, report = self.evaluate_classification(knn, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
+        _, report, eval_metrics, test_time = self.evaluate_classification(knn, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         if self.save_trained_models: self.save_model(knn, file_name)
-        return report
+        return report, eval_metrics
 
     def run_gnb(self, x_train, y_train, x_test, y_test):
         file_name = "GaussianNB"
@@ -328,14 +331,16 @@ class Ml:
             self.printlog(f"[{self.get_ts()}] Preparing GaussianNB")
             start_time = time.time()
             gnb = GaussianNB(**self.gnb_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
-        _, report = self.evaluate_classification(gnb, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
+        _, report, eval_metrics, test_time = self.evaluate_classification(gnb, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         if self.save_trained_models: self.save_model(gnb, file_name)
-        return report
+        return report, eval_metrics
 
     def run_lin_svc(self, x_train, y_train, x_test, y_test): 
         file_name = "Linear SVC(LBasedImpl)"
@@ -345,14 +350,16 @@ class Ml:
             self.printlog(f"[{self.get_ts()}] Preparing Linear SVC(LBasedImpl)")
             start_time = time.time()
             lin_svc = svm.LinearSVC(**self.lin_svc_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
-        _, report = self.evaluate_classification(lin_svc, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
+        _, report, eval_metrics, test_time = self.evaluate_classification(lin_svc, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         if self.save_trained_models: self.save_model(lin_svc, file_name)
-        return report
+        return report, eval_metrics
 
     def run_dt(self, x_train, y_train, x_test, y_test):
         file_name = "DecisionTreeClassifier"
@@ -364,11 +371,13 @@ class Ml:
             start_time = time.time()
             dt = DecisionTreeClassifier(**self.dt_params).fit(x_train, y_train)
             tdt = DecisionTreeClassifier(**self.dt_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
-        _, report = self.evaluate_classification(tdt, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
+        _, report, eval_metrics, test_time = self.evaluate_classification(tdt, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         if self.save_trained_models: self.save_model(tdt, file_name)
         features_names = self.feature_names
@@ -381,7 +390,7 @@ class Ml:
         plt.savefig(os.path.join(self.output_dir, f"{counter}Decision_tree.png"))
         # print(f"[{self.get_ts()}] Saved results to {self.output_dir}/{counter}Decision_tree.png", flush=True)
         plt.clf()
-        return report
+        return report, eval_metrics
 
     def run_rf(self, x_train, y_train, x_test, y_test):
         file_name = "RandomForestClassifier"
@@ -391,16 +400,18 @@ class Ml:
             self.printlog(f"[{self.get_ts()}] Preparing RandomForest")
             start_time = time.time()
             rf = RandomForestClassifier(**self.rf_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
-        _, report = self.evaluate_classification(rf, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
+        _, report, eval_metrics, test_time = self.evaluate_classification(rf, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         features_names = self.feature_names
         self.f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
         if self.save_trained_models: self.save_model(rf, file_name)
-        return report
+        return report, eval_metrics
 
     def run_xgb(self, x_train, y_train, x_test, y_test):
         file_name = "XGBoost"
@@ -410,14 +421,16 @@ class Ml:
             self.printlog(f"[{self.get_ts()}] Preparing XGBoost")
             start_time = time.time()
             xg_c = xgb.XGBClassifier(**self.xgb_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
-        _, report = self.evaluate_classification(xg_c, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
+        _, report, eval_metrics, test_time = self.evaluate_classification(xg_c, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         if self.save_trained_models: self.save_model(xg_c, file_name)
-        return report
+        return report, eval_metrics
 
     def run_et(self, x_train, y_train, x_test, y_test):
         file_name = "ExtraTrees"
@@ -427,14 +440,16 @@ class Ml:
             self.printlog(f"[{self.get_ts()}] Preparing ExtraTrees")
             start_time = time.time()
             et = ExtraTreesClassifier(**self.et_params).fit(x_train, y_train)
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
-        _, report = self.evaluate_classification(et, file_name, x_test, y_test)
-        report = train_time + "\n" + report
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
+        _, report, eval_metrics, test_time = self.evaluate_classification(et, file_name, x_test, y_test)
+        eval_metrics.append(train_time)
+        eval_metrics.append(test_time)
+        report = train_time_str + "\n" + report
         self.printlog(report)
         if self.save_trained_models: self.save_model(et, file_name)
-        return report
+        return report, eval_metrics
 
     def run_dnn(self, x_train, y_train, x_test, y_test):
         file_name = "Deep Neural Network"
@@ -452,10 +467,10 @@ class Ml:
             # Output Dense layer
             dnn.add(tf.keras.layers.Dense(self.num_classes, activation=self.dnn_params["output_activation"]))
             dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.dnn_params["learning_rate"]), loss=self.dnn_params["loss"], metrics=self.dnn_params["metrics"])
-            results = dnn.fit(x_train, y_train, epochs=50, batch_size=32, validation_data=(x_test, y_test))
-            end_time = time.time()
-            train_time = f"[{self.get_ts()}] Training time: {(end_time - start_time):.4f}"
-            # self.printlog(train_time)
+            results = dnn.fit(x_train, y_train, epochs=5, batch_size=32, validation_data=(x_test, y_test))
+            train_time = time.time() - start_time
+            train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
+            # self.printlog(train_time_str)
             plt.subplots(figsize=(8, 6))
             plt.plot(results.history['accuracy'], label='Training Accuracy')
             plt.plot(results.history['val_accuracy'], label='Validation Accuracy')
@@ -475,64 +490,96 @@ class Ml:
         try:
             actual = y_test
             # predicted = dnn.predict(x_test)
-            _, report = self.evaluate_classification(dnn, file_name, x_test, y_test)
-            report = train_time + "\n" + report
+            _, report, eval_metrics, test_time = self.evaluate_classification(dnn, file_name, x_test, y_test)
+            eval_metrics.append(train_time)
+            eval_metrics.append(test_time)
+            report = train_time_str + "\n" + report
             self.printlog(report)
-            return report
+            return report, eval_metrics
         except Exception as e:
             print(e)
             traceback.print_exc()
+            report = f"\nTest Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}"
+            return report, []
 
 
     def model_runner(self, model_func, x_train, y_train, x_test, y_test):
         return model_func(x_train, y_train, x_test, y_test)
         
     # def run_models(self, x_train, y_train, x_test, y_test):
-    #     if (self.bool_gnb): self.run_gnb(x_train, y_train, x_test, y_test)
-    #     if (self.bool_xgb): self.run_xgb(x_train, y_train, x_test, y_test)
-    #     if (self.bool_et): self.run_et(x_train, y_train, x_test, y_test)
-    #     if (self.bool_dt): self.run_dt(x_train, y_train, x_test, y_test)
-    #     if (self.bool_rf): self.run_rf(x_train, y_train, x_test, y_test)
-    #     if (self.bool_lr): self.run_lr(x_train, y_train, x_test, y_test)
-    #     if (self.bool_lin_svc): self.run_lin_svc(x_train, y_train, x_test, y_test)
-    #     if (self.bool_knn): self.run_knn(x_train, y_train, x_test, y_test)
-    #     if (self.bool_dnn): self.run_dnn(x_train, y_train, x_test, y_test)
+    #     if self.bool_gnb: self.run_gnb(x_train, y_train, x_test, y_test)
+    #     if self.bool_xgb: self.run_xgb(x_train, y_train, x_test, y_test)
+    #     if self.bool_et: self.run_et(x_train, y_train, x_test, y_test)
+    #     if self.bool_dt: self.run_dt(x_train, y_train, x_test, y_test)
+    #     if self.bool_rf: self.run_rf(x_train, y_train, x_test, y_test)
+    #     if self.bool_lr: self.run_lr(x_train, y_train, x_test, y_test)
+    #     if self.bool_lin_svc: self.run_lin_svc(x_train, y_train, x_test, y_test)
+    #     if self.bool_knn: self.run_knn(x_train, y_train, x_test, y_test)
+    #     if self.bool_dnn: self.run_dnn(x_train, y_train, x_test, y_test)
 
     def run_models(self, x_train, y_train, x_test, y_test):
+        reports = []
+        total_eval_metrics = []
         model_funcs = []
+        
+        # knn and xgb uses a lot of processing power, so run them individually
+        if self.bool_xgb: 
+            report, eval_metrics = self.run_xgb(x_train, y_train, x_test, y_test)
+            reports.append(report)
+            total_eval_metrics.append(eval_metrics)
+        if self.bool_knn: 
+            report, eval_metrics = self.run_knn(x_train, y_train, x_test, y_test)
+            reports.append(report)
+            total_eval_metrics.append(eval_metrics)
+        
+        # these models rarely use more than 1 thread, can run them in parallel
+        # if self.bool_knn: model_funcs.append(self.run_knn)
+        # if self.bool_xgb: model_funcs.append(self.run_xgb)
         if self.bool_gnb: model_funcs.append(self.run_gnb)
-        if self.bool_xgb: model_funcs.append(self.run_xgb)
         if self.bool_et: model_funcs.append(self.run_et)
         if self.bool_dt: model_funcs.append(self.run_dt)
         if self.bool_rf: model_funcs.append(self.run_rf)
         if self.bool_lr: model_funcs.append(self.run_lr)
         if self.bool_lin_svc: model_funcs.append(self.run_lin_svc)
-        if self.bool_knn: model_funcs.append(self.run_knn)
         if self.bool_dnn: model_funcs.append(self.run_dnn)
-
-        reports = []
 
         # Use ProcessPoolExecutor to run models in parallel
         with concurrent.futures.ProcessPoolExecutor(max_workers=min(self.max_workers, len(model_funcs))) as executor:
             futures = [executor.submit(self.model_runner, func, x_train, y_train, x_test, y_test) for func in model_funcs]
             for future in concurrent.futures.as_completed(futures):
                 try:
-                    report = future.result()
-                    # print(f"future.result(): {report}")
+                    report, eval_metrics = future.result()
                     reports.append(report)
+                    total_eval_metrics.append(eval_metrics)
                 except Exception as exc:
-                    print(f'Generated an exception: {exc}')
+                    print(f'[{self.get_ts()}] Generated an exception: {exc}')
                     traceback.print_exc()
         
         # Combine all reports into a single string
         try:
             combined_report = "\n\n".join(reports) if reports else "No reports generated."
         except Exception as e:
-            print(f"Encountered an exception: {e}")
+            print(f"[{self.get_ts()}] Unable to generate report.txt: {e}")
 
         # Write the combined report to a file
         with open(f'{self.output_dir}/log.txt', 'w') as report_file:
             report_file.write(combined_report)
+        
+        filepath = f"{self.output_dir}/results.csv"
+        with open(filepath, 'w', newline='') as csvfile:
+            # Create a CSV writer object
+            csv_writer = csv.writer(csvfile)
+
+            # Write the header row
+            header = ['Model', 'Accuracy', 'Precision', 'Recall', 'F1', 'Train Time', 'Test Time']
+            csv_writer.writerow(header)
+
+            # Write metrics for each model
+            for metrics in total_eval_metrics:
+                row_data = metrics
+                csv_writer.writerow(row_data)
+
+            print(f"Metrics saved to {filepath}")
 
     def start(self):
         warnings.filterwarnings('ignore')
@@ -607,7 +654,7 @@ class Ml:
             self.run_models(x_train, y_train, x_test, y_test)
 
         # Save all metrics to file
-        self.save_metrics_to_csv(self.kernal_evals, f"{self.output_dir}/results.csv")
+        # self.save_metrics_to_csv(self.kernal_evals, f"{self.output_dir}/results.csv")
         print(f"[{self.get_ts()}] End of program")
 
 #-------------------------------- MAIN --------------------------------
