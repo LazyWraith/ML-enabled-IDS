@@ -1,8 +1,8 @@
 import pandas as pd
 
-in_file = './Captures/DoS/hping3 p80.csv'
-out_file = './Captures/DoS/cic_hping3_p80.csv'
-label = 'DoS'
+in_file = './Captures/PortScan/port-scan.csv'
+out_file = './Captures/PortScan/cic_port-scan.csv'
+label = 'PortScan'
 
 # Read the source CSV file
 df = pd.read_csv(in_file)
@@ -64,7 +64,6 @@ column_mapping = {
     'pkt_size_avg' : 'Average Packet Size',
     'fwd_seg_size_avg' : 'Avg Fwd Segment Size',
     'bwd_seg_size_avg' : 'Avg Bwd Segment Size',
-    'fwd_header_len' : 'Fwd Header Length.1',
     'fwd_byts_b_avg' : 'Fwd Avg Bytes/Bulk',
     'fwd_pkts_b_avg' : 'Fwd Avg Packets/Bulk',
     'fwd_blk_rate_avg' : 'Fwd Avg Bulk Rate',
