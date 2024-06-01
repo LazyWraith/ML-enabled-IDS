@@ -262,7 +262,7 @@ class Ml:
             test_recall = metrics.recall_score(y_test, test_predict, average=self.eval_average)
             test_f1 = metrics.f1_score(y_test, test_predict, average=self.eval_average)
 
-            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, test_predict, target_names=self.target_names))
+            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, test_predict, labels=np.arange(len(self.target_names)), target_names=self.target_names))
             
         except Exception as e:
             traceback.print_exc()
@@ -298,6 +298,8 @@ class Ml:
         file_name = "Logistic Regression"
         if self.load_saved_models:
             lr = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing Logistic Regression")
             start_time = time.time()
@@ -316,6 +318,8 @@ class Ml:
         file_name = "KNeighborsClassifier"
         if self.load_saved_models:
             knn = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing KNeighborsClassifier")
             start_time = time.time()
@@ -335,6 +339,8 @@ class Ml:
         file_name = "GaussianNB"
         if self.load_saved_models:
             gnb = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing GaussianNB")
             start_time = time.time()
@@ -354,6 +360,8 @@ class Ml:
         file_name = "Linear SVC(LBasedImpl)"
         if self.load_saved_models:
             lin_svc = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing Linear SVC(LBasedImpl)")
             start_time = time.time()
@@ -373,23 +381,23 @@ class Ml:
         file_name = "DecisionTreeClassifier"
         if self.load_saved_models:
             dt = self.load_model(file_name)
-            tdt = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing Decision Tree")
             start_time = time.time()
             dt = DecisionTreeClassifier(**self.dt_params).fit(x_train, y_train)
-            tdt = DecisionTreeClassifier(**self.dt_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
             # self.printlog(train_time_str)
-        _, report, eval_metrics, test_time = self.evaluate_classification(tdt, file_name, x_test, y_test)
+        _, report, eval_metrics, test_time = self.evaluate_classification(dt, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
         self.printlog(report)
-        if self.save_trained_models: self.save_model(tdt, file_name)
+        if self.save_trained_models: self.save_model(dt, file_name)
         features_names = self.feature_names
-        self.f_importances(abs(tdt.feature_importances_), features_names, top=18, title="Decision Tree")
+        self.f_importances(abs(dt.feature_importances_), features_names, top=18, title="Decision Tree")
 
         # print(f"[{self.get_ts()}] Generating results...", flush=True)
         fig = plt.figure(figsize=(60, 40))
@@ -404,6 +412,8 @@ class Ml:
         file_name = "RandomForestClassifier"
         if self.load_saved_models:
             rf = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing RandomForest")
             start_time = time.time()
@@ -425,6 +435,8 @@ class Ml:
         file_name = "XGBoost"
         if self.load_saved_models:
             xg_c = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing XGBoost")
             start_time = time.time()
@@ -444,6 +456,8 @@ class Ml:
         file_name = "ExtraTrees"
         if self.load_saved_models:
             et = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing ExtraTrees")
             start_time = time.time()
@@ -463,6 +477,8 @@ class Ml:
         file_name = "Deep Neural Network"
         if self.load_saved_models:
             dnn = self.load_model(file_name)
+            train_time = 0
+            train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing DNN")
             y_train = tf.keras.utils.to_categorical(y_train, num_classes=self.num_classes)
@@ -590,8 +606,6 @@ class Ml:
             print(f"Metrics saved to {filepath}")
 
     def start(self):
-        warnings.filterwarnings('ignore')
-
         self.printlog(f"[{self.get_ts()}] Init complete!")
         self.printlog(f"[{self.get_ts()}] Reading from {self.train_path}")
 
@@ -621,7 +635,6 @@ class Ml:
         # Process and split dataset
         if self.use_single_dataset: 
             data_train = self.map_classes(data_train)
-            label_mapping = self.class_mapping
             
             scaled_train = self.preprocess(data_train)
 
@@ -646,7 +659,7 @@ class Ml:
         # Evaluate using separate train and test datasets
         else:
             data_train = self.map_classes(data_train)
-            label_mapping = self.class_mapping
+            data_test = self.map_classes(data_test)
             
             scaled_train = self.preprocess(data_train)
             x_train = scaled_train.drop(self.label_header, axis=1).values
@@ -659,6 +672,11 @@ class Ml:
             y_test = scaled_test[self.label_header].values
             y_test = y_test.astype('int')
 
+            value_counts = data_test[self.label_header].value_counts()
+            self.printlog(value_counts)
+
+            self.feature_names = data_train.drop(self.label_header, axis = 1)
+
             self.run_models(x_train, y_train, x_test, y_test)
 
         # Save all metrics to file
@@ -667,5 +685,6 @@ class Ml:
 
 #-------------------------------- MAIN --------------------------------
 if __name__ == "__main__":
+    warnings.filterwarnings('ignore')
     job = Ml()
     job.start()
