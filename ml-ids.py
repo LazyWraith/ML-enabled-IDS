@@ -207,19 +207,26 @@ class Ml:
             print(f"Unable to plot CM for {name}")
 
     def preprocess(self, dataframe):
-        dataframe = dataframe.drop(self.drop_cols, axis=1)
-        df_num = dataframe.drop(self.cat_cols, axis=1)
-        num_cols = df_num.select_dtypes(include=[np.number]).columns
-        dataframe = pd.get_dummies(dataframe, columns=self.obj_cols)
-        df_num = dataframe[num_cols]
-        labels = dataframe[self.label_header]
+        # dataframe = dataframe.drop(self.drop_cols, axis=1)
+        # df_num = dataframe.drop(self.cat_cols, axis=1)
+        # num_cols = df_num.select_dtypes(include=[np.number]).columns
+        # dataframe = pd.get_dummies(dataframe, columns=self.obj_cols)
+        # df_num = dataframe[num_cols]
+        # labels = dataframe[self.label_header]
         
+        # # Replace NaN values with 0
+        # df_num.fillna(0, inplace=True)
+        
+        # # Replace infinity values with 0
+        # df_num.replace([np.inf, -np.inf], 0, inplace=True)
+        # dataframe = pd.concat([df_num, labels], axis=1)
+
+        dataframe = dataframe.drop(self.drop_cols, axis=1)
         # Replace NaN values with 0
-        df_num.fillna(0, inplace=True)
+        dataframe.fillna(0, inplace=True)
         
         # Replace infinity values with 0
-        df_num.replace([np.inf, -np.inf], 0, inplace=True)
-        dataframe = pd.concat([df_num, labels], axis=1)
+        dataframe.replace([np.inf, -np.inf], 0, inplace=True)
         return dataframe
 
     def save_metrics_to_csv(self, eval_metrics, filepath):
@@ -260,6 +267,7 @@ class Ml:
         except Exception as e:
             traceback.print_exc()
             self.printlog(f"An error occurred while attempting to evaluate model: {name}")
+
         test_time = time.time() - start_time
         test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
         report = report + "\n" + test_time_str
