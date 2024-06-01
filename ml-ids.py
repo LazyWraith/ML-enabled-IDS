@@ -252,17 +252,18 @@ class Ml:
 
         print(f"Metrics saved to {filepath}")
 
-    def evaluate_classification(self, model, name, x_test, y_test):
+    def evaluate_classification_dnn(self, model, name, x_test, y_test):
         self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
         start_time = time.time()
         try:
-            test_predict = model.predict(x_test)
-            test_accuracy = metrics.accuracy_score(y_test, test_predict)
-            test_precision = metrics.precision_score(y_test, test_predict, average=self.eval_average)
-            test_recall = metrics.recall_score(y_test, test_predict, average=self.eval_average)
-            test_f1 = metrics.f1_score(y_test, test_predict, average=self.eval_average)
+            y_pred = model.predict(x_test)
+            y_pred_classes = np.argmax(y_pred, axis=1)
+            accuracy = metrics.accuracy_score(y_test, y_pred_classes)
+            precision = metrics.precision_score(y_test, y_pred_classes, average=self.eval_average)
+            recall = metrics.recall_score(y_test, y_pred_classes, average=self.eval_average)
+            f1 = metrics.f1_score(y_test, y_pred_classes, average=self.eval_average)
 
-            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, test_predict, labels=np.arange(len(self.target_names)), target_names=self.target_names))
+            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, y_pred_classes, labels=np.arange(len(self.target_names)), target_names=self.target_names))
             
         except Exception as e:
             traceback.print_exc()
@@ -272,9 +273,33 @@ class Ml:
         test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
         report = report + "\n" + test_time_str
         # self.printlog(test_time_str)
-        eval_metrics = [str(name), test_accuracy, test_precision, test_recall, test_f1]
-        self.cm_plot(y_test, test_predict, name)
-        return test_predict, report, eval_metrics, test_time
+        eval_metrics = [str(name), accuracy, precision, recall, f1]
+        self.cm_plot(y_test, y_pred_classes, name)
+        return y_pred_classes, report, eval_metrics, test_time
+
+    def evaluate_classification(self, model, name, x_test, y_test):
+        self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
+        start_time = time.time()
+        try:
+            y_pred = model.predict(x_test)
+            accuracy = metrics.accuracy_score(y_test, y_pred)
+            precision = metrics.precision_score(y_test, y_pred, average=self.eval_average)
+            recall = metrics.recall_score(y_test, y_pred, average=self.eval_average)
+            f1 = metrics.f1_score(y_test, y_pred, average=self.eval_average)
+
+            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, y_pred, labels=np.arange(len(self.target_names)), target_names=self.target_names))
+            
+        except Exception as e:
+            traceback.print_exc()
+            self.printlog(f"An error occurred while attempting to evaluate model: {name}")
+
+        test_time = time.time() - start_time
+        test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
+        report = report + "\n" + test_time_str
+        # self.printlog(test_time_str)
+        eval_metrics = [str(name), accuracy, precision, recall, f1]
+        self.cm_plot(y_test, y_pred, name)
+        return y_pred, report, eval_metrics, test_time
 
     def f_importances(self, coef, names, top=-1, title="untitled"):
         imp = coef
@@ -491,7 +516,7 @@ class Ml:
             # Output Dense layer
             dnn.add(tf.keras.layers.Dense(self.num_classes, activation=self.dnn_params["output_activation"]))
             dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.dnn_params["learning_rate"]), loss=self.dnn_params["loss"], metrics=self.dnn_params["metrics"])
-            results = dnn.fit(x_train, y_train, epochs=5, batch_size=32, validation_data=(x_test, y_test))
+            results = dnn.fit(x_train, y_train, epochs=10, batch_size=256, validation_data=(x_test, y_test))
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
             # self.printlog(train_time_str)
