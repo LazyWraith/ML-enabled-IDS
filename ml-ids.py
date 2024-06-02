@@ -80,7 +80,6 @@ class Ml:
         self.split_test_ratio = 1 - self.split_train_ratio
         self.rndm_state = settings.get('rndm_state', 42)
 
-        self.filename_counter = 0
         self.kernal_evals = dict()
         self.eval_report = dict()
         
@@ -134,10 +133,6 @@ class Ml:
 
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 
-    def get_filename_counter(self):
-        self.filename_counter += 1
-        return str(self.filename_counter) + ". "
-
     def printlog(self, message):
         message = str(message)
         print(message, flush=True)
@@ -149,14 +144,12 @@ class Ml:
     def save_model(self, model, name):
         Path(self.model_save_path).mkdir(parents=True, exist_ok=True)
         filename = os.path.join(self.model_save_path, f"{self.model_save_version} {name}.pkl")
-        # self.printlog(f"[{self.get_ts()}] Saving model to {filename}")
         with open(filename, 'wb') as f:
             pickle.dump(model, f)
 
     def load_model(self, name):
         Path(self.model_save_path).mkdir(parents=True, exist_ok=True)
         filename = os.path.join(self.model_save_path, f"{self.model_save_version} {name}.pkl")
-        # self.printlog(f"[{self.get_ts()}] Loading model from {filename}")
         with open(filename, 'rb') as f:
             model = pickle.load(f)
         return model
@@ -170,15 +163,13 @@ class Ml:
         for ax, col in zip(axes.ravel(), cols_list):
             df[col].value_counts().plot(ax=ax, kind='pie', figsize=(12, 8), fontsize=10, autopct='%1.0f%%')
             ax.set_title(str(col), fontsize=12)
-        counter = self.get_filename_counter()
-        plt.savefig(os.path.join(self.output_dir, f"{counter}{col}_pie_chart.png"))  # Save the chart
-        # print(f"[{self.get_ts()}] Saved results to {self.output_dir}/{counter}{col}_pie_chart.png", flush=True)
+        plt.savefig(os.path.join(self.output_dir, f"{col}_pie_chart.png"))  # Save the chart
         if (self.display_results): plt.show()
         plt.clf()
 
     def cm_plot(self, y_test, y_predict, name):
         # Combine all non-"Normal" classes into a single "Attack" class
-            # Flatten CM attack classes into one
+        # Flatten CM attack classes into one
         y_test_combined = np.where(y_test == 0, 0, 1)
         test_predict_combined = np.where(y_predict == 0, 0, 1)
         cm = metrics.confusion_matrix(y_test_combined, test_predict_combined)
@@ -187,9 +178,7 @@ class Ml:
         fig, ax = plt.subplots(figsize=(6, 4))
         ax.grid(False)
         cm_display.plot(ax=ax)
-        counter = self.get_filename_counter()
-        plt.savefig(os.path.join(self.output_dir, f"{counter}{name}_confusion_matrix.png"))
-        # print(f"[{self.get_ts()}] Saved results to {self.output_dir}/{counter}{name}_confusion_matrix.png", flush=True)
+        plt.savefig(os.path.join(self.output_dir, f"{name}_confusion_matrix.png"))
         plt.clf()
         
         try:
@@ -199,27 +188,20 @@ class Ml:
             plt.xlabel("y_pred")
             plt.ylabel("y_true")
             # plt.show()
-            plt.savefig(os.path.join(self.output_dir, f"{counter}{name}_multi_confusion_matrix.png"))
-            # print(f"[{self.get_ts()}] Saved results to {self.output_dir}/{counter}{name}_multi_confusion_matrix.png", flush=True)
+            plt.savefig(os.path.join(self.output_dir, f"{name}_multi_confusion_matrix.png"))
             plt.clf()
         except Exception as e:
             print(e)
             print(f"Unable to plot CM for {name}")
 
     def preprocess(self, dataframe):
+        # One hot encode
         # dataframe = dataframe.drop(self.drop_cols, axis=1)
         # df_num = dataframe.drop(self.cat_cols, axis=1)
         # num_cols = df_num.select_dtypes(include=[np.number]).columns
         # dataframe = pd.get_dummies(dataframe, columns=self.obj_cols)
         # df_num = dataframe[num_cols]
         # labels = dataframe[self.label_header]
-        
-        # # Replace NaN values with 0
-        # df_num.fillna(0, inplace=True)
-        
-        # # Replace infinity values with 0
-        # df_num.replace([np.inf, -np.inf], 0, inplace=True)
-        # dataframe = pd.concat([df_num, labels], axis=1)
 
         dataframe = dataframe.drop(self.drop_cols, axis=1)
         # Replace NaN values with 0
@@ -251,31 +233,6 @@ class Ml:
                 csv_writer.writerow(row_data)
 
         print(f"Metrics saved to {filepath}")
-
-    # def evaluate_classification_dnn(self, model, name, x_test, y_test):
-    #     self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
-    #     start_time = time.time()
-    #     try:
-    #         y_pred = model.predict(x_test)
-    #         y_pred_classes = np.argmax(y_pred, axis=1)
-    #         accuracy = metrics.accuracy_score(y_test, y_pred_classes)
-    #         precision = metrics.precision_score(y_test, y_pred_classes, average=self.eval_average)
-    #         recall = metrics.recall_score(y_test, y_pred_classes, average=self.eval_average)
-    #         f1 = metrics.f1_score(y_test, y_pred_classes, average=self.eval_average)
-
-    #         report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, y_pred_classes, labels=np.arange(len(self.target_names)), target_names=self.target_names))
-            
-    #     except Exception as e:
-    #         traceback.print_exc()
-    #         self.printlog(f"An error occurred while attempting to evaluate model: {name}")
-
-    #     test_time = time.time() - start_time
-    #     test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
-    #     report = report + "\n" + test_time_str
-    #     # self.printlog(test_time_str)
-    #     eval_metrics = [str(name), accuracy, precision, recall, f1]
-    #     self.cm_plot(y_test, y_pred_classes, name)
-    #     return y_pred_classes, report, eval_metrics, test_time
 
     def evaluate_classification(self, model, name, x_test, y_test):
         self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
@@ -314,9 +271,7 @@ class Ml:
         plt.barh(range(top), imp[::-1][0:top], align='center')
         plt.yticks(range(top), names[::-1][0:top])
         plt.title(f'Feature importances for {title}')
-        counter = self.get_filename_counter()
-        plt.savefig(os.path.join(self.output_dir, f"{counter}Feature importances for {title}.png"))
-        # print(f"[{self.get_ts()}] Saved results to {self.output_dir}/{counter}Feature importances for {title}.png", flush=True)
+        plt.savefig(os.path.join(self.output_dir, f"{title} Feature Importance.png"))
         if (self.display_results): plt.show()
         plt.clf()
 
@@ -352,7 +307,6 @@ class Ml:
             knn = KNeighborsClassifier(**self.knn_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
         _, report, eval_metrics, test_time = self.evaluate_classification(knn, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
@@ -373,7 +327,6 @@ class Ml:
             gnb = GaussianNB(**self.gnb_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
         _, report, eval_metrics, test_time = self.evaluate_classification(gnb, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
@@ -394,7 +347,6 @@ class Ml:
             lin_svc = svm.LinearSVC(**self.lin_svc_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
         _, report, eval_metrics, test_time = self.evaluate_classification(lin_svc, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
@@ -415,7 +367,6 @@ class Ml:
             dt = DecisionTreeClassifier(**self.dt_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
         _, report, eval_metrics, test_time = self.evaluate_classification(dt, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
@@ -424,13 +375,9 @@ class Ml:
         if self.save_trained_models: self.save_model(dt, file_name)
         features_names = self.feature_names
         self.f_importances(abs(dt.feature_importances_), features_names, top=18, title="Decision Tree")
-
-        # print(f"[{self.get_ts()}] Generating results...", flush=True)
         fig = plt.figure(figsize=(60, 40))
         tree.plot_tree(dt, filled=True, feature_names=features_names.columns, fontsize=8)
-        counter = self.get_filename_counter()
-        plt.savefig(os.path.join(self.output_dir, f"{counter}Decision_tree.png"))
-        # print(f"[{self.get_ts()}] Saved results to {self.output_dir}/{counter}Decision_tree.png", flush=True)
+        plt.savefig(os.path.join(self.output_dir, f"Decision_tree.png"))
         plt.clf()
         return report, eval_metrics
 
@@ -446,7 +393,6 @@ class Ml:
             rf = RandomForestClassifier(**self.rf_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
         _, report, eval_metrics, test_time = self.evaluate_classification(rf, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
@@ -469,7 +415,6 @@ class Ml:
             xg_c = xgb.XGBClassifier(**self.xgb_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
         _, report, eval_metrics, test_time = self.evaluate_classification(xg_c, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
@@ -490,7 +435,6 @@ class Ml:
             et = ExtraTreesClassifier(**self.et_params).fit(x_train, y_train)
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
         _, report, eval_metrics, test_time = self.evaluate_classification(et, file_name, x_test, y_test)
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
@@ -515,14 +459,12 @@ class Ml:
             for units in self.dnn_params["dense_layers"]:
                 dnn.add(tf.keras.layers.Dense(units, activation=self.dnn_params["activation"]))
                 dnn.add(tf.keras.layers.Dropout(self.dnn_params["dropout_rate"]))
-            # Output Dense layer
             dnn.add(tf.keras.layers.Dense(self.num_classes, activation=self.dnn_params["output_activation"]))
             monitor = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=3, verbose=1, mode='auto')
             dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.dnn_params["learning_rate"]), loss=self.dnn_params["loss"], metrics=self.dnn_params["metrics"])
             results = dnn.fit(x_train, y_train_categorical, epochs=128, batch_size=512, validation_data=(x_test, y_test_categorical), callbacks=[monitor])
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
-            # self.printlog(train_time_str)
             plt.subplots(figsize=(8, 6))
             plt.plot(results.history['accuracy'], label='Training Accuracy')
             plt.plot(results.history['val_accuracy'], label='Validation Accuracy')
@@ -530,9 +472,7 @@ class Ml:
             plt.xlabel('Epoch')
             plt.ylabel('Accuracy')
             plt.legend(loc='lower right')
-            counter = self.get_filename_counter()
-            plt.savefig(os.path.join(self.output_dir, f"{counter}Deep Neural Network.png"))
-            # print(f"[{self.get_ts()}] Saved results to {self.output_dir}/{counter}Deep Neural Network.png", flush=True)
+            plt.savefig(os.path.join(self.output_dir, f"Deep Neural Network.png"))
             if(self.display_results): plt.show()
             plt.clf()
 
@@ -540,8 +480,6 @@ class Ml:
         self.printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
         if self.save_trained_models: self.save_model(dnn, file_name)
         try:
-            actual = y_test_categorical
-            # predicted = dnn.predict(x_test)
             _, report, eval_metrics, test_time = self.evaluate_classification(dnn, file_name, x_test, y_test)
             eval_metrics.append(train_time)
             eval_metrics.append(test_time)
@@ -557,17 +495,6 @@ class Ml:
 
     def model_runner(self, model_func, x_train, y_train, x_test, y_test):
         return model_func(x_train, y_train, x_test, y_test)
-        
-    # def run_models(self, x_train, y_train, x_test, y_test):
-    #     if self.bool_gnb: self.run_gnb(x_train, y_train, x_test, y_test)
-    #     if self.bool_xgb: self.run_xgb(x_train, y_train, x_test, y_test)
-    #     if self.bool_et: self.run_et(x_train, y_train, x_test, y_test)
-    #     if self.bool_dt: self.run_dt(x_train, y_train, x_test, y_test)
-    #     if self.bool_rf: self.run_rf(x_train, y_train, x_test, y_test)
-    #     if self.bool_lr: self.run_lr(x_train, y_train, x_test, y_test)
-    #     if self.bool_lin_svc: self.run_lin_svc(x_train, y_train, x_test, y_test)
-    #     if self.bool_knn: self.run_knn(x_train, y_train, x_test, y_test)
-    #     if self.bool_dnn: self.run_dnn(x_train, y_train, x_test, y_test)
 
     def run_models(self, x_train, y_train, x_test, y_test):
         reports = []
@@ -708,8 +635,6 @@ class Ml:
 
             self.run_models(x_train, y_train, x_test, y_test)
 
-        # Save all metrics to file
-        # self.save_metrics_to_csv(self.kernal_evals, f"{self.output_dir}/results.csv")
         print(f"[{self.get_ts()}] End of program")
 
 #-------------------------------- MAIN --------------------------------
