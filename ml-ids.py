@@ -252,36 +252,37 @@ class Ml:
 
         print(f"Metrics saved to {filepath}")
 
-    def evaluate_classification_dnn(self, model, name, x_test, y_test):
-        self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
-        start_time = time.time()
-        try:
-            y_pred = model.predict(x_test)
-            y_pred_classes = np.argmax(y_pred, axis=1)
-            accuracy = metrics.accuracy_score(y_test, y_pred_classes)
-            precision = metrics.precision_score(y_test, y_pred_classes, average=self.eval_average)
-            recall = metrics.recall_score(y_test, y_pred_classes, average=self.eval_average)
-            f1 = metrics.f1_score(y_test, y_pred_classes, average=self.eval_average)
+    # def evaluate_classification_dnn(self, model, name, x_test, y_test):
+    #     self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
+    #     start_time = time.time()
+    #     try:
+    #         y_pred = model.predict(x_test)
+    #         y_pred_classes = np.argmax(y_pred, axis=1)
+    #         accuracy = metrics.accuracy_score(y_test, y_pred_classes)
+    #         precision = metrics.precision_score(y_test, y_pred_classes, average=self.eval_average)
+    #         recall = metrics.recall_score(y_test, y_pred_classes, average=self.eval_average)
+    #         f1 = metrics.f1_score(y_test, y_pred_classes, average=self.eval_average)
 
-            report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, y_pred_classes, labels=np.arange(len(self.target_names)), target_names=self.target_names))
+    #         report = f"Evaluation Results for {name}: \n" + str(metrics.classification_report(y_test, y_pred_classes, labels=np.arange(len(self.target_names)), target_names=self.target_names))
             
-        except Exception as e:
-            traceback.print_exc()
-            self.printlog(f"An error occurred while attempting to evaluate model: {name}")
+    #     except Exception as e:
+    #         traceback.print_exc()
+    #         self.printlog(f"An error occurred while attempting to evaluate model: {name}")
 
-        test_time = time.time() - start_time
-        test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
-        report = report + "\n" + test_time_str
-        # self.printlog(test_time_str)
-        eval_metrics = [str(name), accuracy, precision, recall, f1]
-        self.cm_plot(y_test, y_pred_classes, name)
-        return y_pred_classes, report, eval_metrics, test_time
+    #     test_time = time.time() - start_time
+    #     test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
+    #     report = report + "\n" + test_time_str
+    #     # self.printlog(test_time_str)
+    #     eval_metrics = [str(name), accuracy, precision, recall, f1]
+    #     self.cm_plot(y_test, y_pred_classes, name)
+    #     return y_pred_classes, report, eval_metrics, test_time
 
     def evaluate_classification(self, model, name, x_test, y_test):
         self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
         start_time = time.time()
         try:
             y_pred = model.predict(x_test)
+            if name == "Deep Neural Network": y_pred = np.argmax(y_pred, axis=1)
             accuracy = metrics.accuracy_score(y_test, y_pred)
             precision = metrics.precision_score(y_test, y_pred, average=self.eval_average)
             recall = metrics.recall_score(y_test, y_pred, average=self.eval_average)
@@ -498,7 +499,7 @@ class Ml:
         if self.save_trained_models: self.save_model(et, file_name)
         return report, eval_metrics
 
-    def run_dnn(self, x_train, y_train, x_test, y_test):
+    def run_dnn(self, x_train, y_train_categorical, x_test, y_test):
         file_name = "Deep Neural Network"
         if self.load_saved_models:
             dnn = self.load_model(file_name)
@@ -506,17 +507,19 @@ class Ml:
             train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing DNN")
-            y_train = tf.keras.utils.to_categorical(y_train, num_classes=self.num_classes)
-            y_test = tf.keras.utils.to_categorical(y_test, num_classes=self.num_classes)
+            y_train_categorical = tf.keras.utils.to_categorical(y_train_categorical, num_classes=self.num_classes)
+            y_test_categorical = tf.keras.utils.to_categorical(y_test, num_classes=self.num_classes)
             start_time = time.time()
             dnn = tf.keras.Sequential()
+            dnn.add(tf.keras.Input(shape=(x_train.shape[1],)))
             for units in self.dnn_params["dense_layers"]:
-                dnn.add(tf.keras.layers.Dense(units, activation=self.dnn_params["activation"], input_shape=(x_train.shape[1],)))
+                dnn.add(tf.keras.layers.Dense(units, activation=self.dnn_params["activation"]))
                 dnn.add(tf.keras.layers.Dropout(self.dnn_params["dropout_rate"]))
             # Output Dense layer
             dnn.add(tf.keras.layers.Dense(self.num_classes, activation=self.dnn_params["output_activation"]))
+            monitor = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=3, verbose=1, mode='auto')
             dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.dnn_params["learning_rate"]), loss=self.dnn_params["loss"], metrics=self.dnn_params["metrics"])
-            results = dnn.fit(x_train, y_train, epochs=10, batch_size=256, validation_data=(x_test, y_test))
+            results = dnn.fit(x_train, y_train_categorical, epochs=128, batch_size=512, validation_data=(x_test, y_test_categorical), callbacks=[monitor])
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
             # self.printlog(train_time_str)
@@ -533,11 +536,11 @@ class Ml:
             if(self.display_results): plt.show()
             plt.clf()
 
-        loss, accuracy = dnn.evaluate(x_test, y_test)
+        loss, accuracy = dnn.evaluate(x_test, y_test_categorical)
         self.printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
         if self.save_trained_models: self.save_model(dnn, file_name)
         try:
-            actual = y_test
+            actual = y_test_categorical
             # predicted = dnn.predict(x_test)
             _, report, eval_metrics, test_time = self.evaluate_classification(dnn, file_name, x_test, y_test)
             eval_metrics.append(train_time)
@@ -650,6 +653,7 @@ class Ml:
         data_test.columns = columns
         data_train.info()
         if not self.use_single_dataset: data_test.info()
+        print(data_train[self.label_header].value_counts())
 
         self.printlog(f"[{self.get_ts()}] Mapping outcomes...")
 
