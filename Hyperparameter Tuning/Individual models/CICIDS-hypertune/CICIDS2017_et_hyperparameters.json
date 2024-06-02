@@ -1,0 +1,7 @@
+{
+  "ExtraTree": {
+    "max_depth": 24,
+    "min_samples_split": 12,
+    "min_samples_leaf": 1
+  }
+}

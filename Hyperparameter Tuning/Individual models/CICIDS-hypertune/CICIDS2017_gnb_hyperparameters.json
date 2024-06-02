@@ -1,5 +1,5 @@
 {
   "GaussianNB": {
-    "var_smoothing": 1.3291782793683014e-15
+    "var_smoothing": 1.5913170140151377e-18
   }
 }
