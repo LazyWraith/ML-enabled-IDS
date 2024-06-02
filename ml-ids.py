@@ -170,6 +170,7 @@ class Ml:
     def cm_plot(self, y_test, y_predict, name):
         # Combine all non-"Normal" classes into a single "Attack" class
         # Flatten CM attack classes into one
+        # plot binary class cm
         y_test_combined = np.where(y_test == 0, 0, 1)
         test_predict_combined = np.where(y_predict == 0, 0, 1)
         cm = metrics.confusion_matrix(y_test_combined, test_predict_combined)
@@ -182,9 +183,10 @@ class Ml:
         plt.clf()
         
         try:
-            cm=metrics.confusion_matrix(y_test, y_predict)
-            f,ax=plt.subplots(figsize=(5,5))
-            sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
+            # plot multiclass cm
+            cm=metrics.confusion_matrix(y_test, y_predict, labels=list(range(len(self.target_names))))
+            f,ax=plt.subplots(figsize=(9,7))
+            sns.heatmap(cm, annot=True, linewidth=0.5, linecolor="red", fmt=".0f", ax=ax, xticklabels=self.target_names, yticklabels=self.target_names)
             plt.xlabel("y_pred")
             plt.ylabel("y_true")
             # plt.show()
@@ -445,14 +447,14 @@ class Ml:
 
     def run_dnn(self, x_train, y_train_categorical, x_test, y_test):
         file_name = "Deep Neural Network"
+        y_train_categorical = tf.keras.utils.to_categorical(y_train_categorical, num_classes=self.num_classes)
+        y_test_categorical = tf.keras.utils.to_categorical(y_test, num_classes=self.num_classes)
         if self.load_saved_models:
             dnn = self.load_model(file_name)
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
             self.printlog(f"[{self.get_ts()}] Preparing DNN")
-            y_train_categorical = tf.keras.utils.to_categorical(y_train_categorical, num_classes=self.num_classes)
-            y_test_categorical = tf.keras.utils.to_categorical(y_test, num_classes=self.num_classes)
             start_time = time.time()
             dnn = tf.keras.Sequential()
             dnn.add(tf.keras.Input(shape=(x_train.shape[1],)))
