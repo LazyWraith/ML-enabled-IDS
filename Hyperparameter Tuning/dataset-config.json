@@ -29,10 +29,11 @@
       "test_path": "./input/CICIDS2017/CICIDS2017.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
-      "drop_cols": ["Flow Bytes/s", "Flow Packets/s", "Init_Win_bytes_forward", "Init_Win_bytes_backward", "Idle Mean", "Idle Std", "Idle Max", "Idle Min", "Fwd Header Length", "Bwd Header Length"],
+      "drop_cols": ["Fwd Header Length.1"],
       "obj_cols": [],
       "label_header": "Label",
       "label_normal_value": "BENIGN",
+      "resampling_job":[[8,5000],[13,5000],[9,5000],[14,5000],[12,5000],[1,5000]],
       "pie_stats": [["Label", "Label"]],
       "feature_reduced_number": 40
     }

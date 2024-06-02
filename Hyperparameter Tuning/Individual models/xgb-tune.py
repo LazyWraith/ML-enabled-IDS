@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.calibration import LabelEncoder
 import xgboost as xgb
 from pathlib import Path
 from sklearn.decomposition import PCA
@@ -58,24 +59,33 @@ if dataset_name in datasets_config:
 else:
     print("Invalid dataset name!")
 
-def preprocess(dataframe, obj_cols_):
+def preprocess(dataframe):
     dataframe = dataframe.drop(drop_cols, axis=1)
     df_num = dataframe.drop(cat_cols, axis=1)
     num_cols = df_num.select_dtypes(include=[np.number]).columns
-    dataframe = pd.get_dummies(dataframe, columns=obj_cols_)
+    dataframe = pd.get_dummies(dataframe, columns=obj_cols)
     df_num = dataframe[num_cols]
     labels = dataframe[label_header]
-    std_scaler = RobustScaler()
-    std_scaler_temp = std_scaler.fit_transform(df_num)
-    std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
-    dataframe = pd.concat([std_df, labels], axis=1)
+    
+    # Replace NaN values with 0
+    df_num.fillna(0, inplace=True)
+    
+    # Replace infinity values with 0
+    df_num.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    # std_scaler = RobustScaler()
+    # std_scaler_temp = std_scaler.fit_transform(df_num)
+    # std_df = pd.DataFrame(std_scaler_temp, columns=num_cols)
+    # dataframe = pd.concat([std_df, labels], axis=1)
+    dataframe = pd.concat([df_num, labels], axis=1)
     return dataframe
 
 print("Mapping outcomes...", flush=True)
-data_train.loc[data_train[label_header] == label_normal_value, label_header] = 0
-data_train.loc[data_train[label_header] != 0, label_header] = 1
+labelencoder = LabelEncoder()
+data_train.iloc[:, -1] = labelencoder.fit_transform(data_train.iloc[:, -1])
+label_mapping = {index: label for index, label in enumerate(labelencoder.classes_)}
 
-scaled_train = preprocess(data_train, obj_cols)
+scaled_train = preprocess(data_train)
 x = scaled_train.drop(label_header , axis = 1).values
 y = scaled_train[label_header].values
 y = y.astype('int')
@@ -83,10 +93,8 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_r
 
 def objective(trial, model_name):
     params = {
-        'n_estimators': trial.suggest_int('n_estimators', 50, 200),
-        'max_depth': trial.suggest_int('max_depth', 3, 10),
-        # 'learning_rate': trial.suggest_loguniform('learning_rate', 0.001, 0.1),
-        'learning_rate': trial.suggest_float('learning_rate', 0.001, 0.1, log=True),
+        'n_estimators': trial.suggest_int('n_estimators', 10, 100),
+        'max_depth': trial.suggest_int('max_depth', 3, 16)
     }
     model = xgb.XGBClassifier(**params)
 
@@ -97,7 +105,7 @@ def objective(trial, model_name):
 
 # # Optimize hyperparameters for XGBoost
 study_xgb = optuna.create_study(direction='maximize')
-study_xgb.optimize(lambda trial: objective(trial, "xgb"), n_trials=1000)
+study_xgb.optimize(lambda trial: objective(trial, "xgb"), n_trials=500)
 best_params_xgb = study_xgb.best_params
 
 print("Best Hyperparameters for XGBoost:", best_params_xgb)

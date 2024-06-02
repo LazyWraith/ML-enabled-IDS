@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
 from sklearn.preprocessing import RobustScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -93,26 +93,25 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=split_test_r
 
 def objective(trial, model_name):
     params = {
-        'var_smoothing': trial.suggest_float('var_smoothing', 1e-32, 1e-8, log=True),
+        'max_depth' : trial.suggest_int('max_depth', 2, 25),
+        'min_samples_split' : trial.suggest_int('min_samples_split', 2, 30),
+        'min_samples_leaf' : trial.suggest_int('min_samples_leaf', 1, 20),
     }
-    model = GaussianNB(**params)
-
+    model = ExtraTreeClassifier(**params)
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
     accuracy = metrics.accuracy_score(y_test, y_pred)
     return accuracy
+study_et = optuna.create_study(direction='maximize')
+study_et.optimize(lambda trial: objective(trial, "et"), n_trials=500)
+best_params_et = study_et.best_params
 
-study_gnb = optuna.create_study(direction='maximize')
-study_gnb.optimize(lambda trial: objective(trial, "gnb"), n_trials=3200)
-best_params_gnb = study_gnb.best_params
-
-print("Best Hyperparameters for GaussianNB:", best_params_gnb)
-
+print("Best Hyperparameters for ExtraTree:", best_params_et)
 best_params = {
-    "GaussianNB": best_params_gnb
+    "ExtraTree": best_params_et
 }
 
-with open(f"{output_dir}/{dataset_name}_gnb_hyperparameters.json", "w") as f:
+with open(f"{output_dir}/{dataset_name}_et_hyperparameters.json", "w") as f:
     json.dump(best_params, f, indent=2)
 
 print("Saved results'")
