@@ -30,5 +30,6 @@ class_mapping = {
 df.iloc[:, -1] = df.iloc[:, -1].apply(lambda x: class_mapping.get(x, 'Others'))
 
 print(df['Label'].value_counts())
+df.info()
 
-df.to_csv(out_file)
+df.to_csv(out_file, index=False)
