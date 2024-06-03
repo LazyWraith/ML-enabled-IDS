@@ -31,14 +31,25 @@
     "min_samples_leaf": 7,
     "max_features": 0.7421037778517128
   },
-  "dnn_params": {
-    "dense_layers": [64, 256, 384, 256, 128, 64, 16],
+  "dnn_multi_params": {
+    "dense_layers": [64, 256, 64, 64],
     "activation": "relu",
-    "dropout_rate": 0.1,
+    "dropout_rate": 0.2,
     "output_activation": "softmax",
     "learning_rate": 0.001,
     "loss": "categorical_crossentropy",
-    "metrics": ["accuracy"]
+    "metrics": ["accuracy"],
+    "batch_size": 256
+  },
+  "dnn_bin_params": {
+    "dense_layers": [64, 256, 64, 64],
+    "activation": "relu",
+    "dropout_rate": 0.2,
+    "output_activation": "sigmoid",
+    "learning_rate": 0.001,
+    "loss": "binary_crossentropy",
+    "metrics": ["accuracy"],
+    "batch_size": 256
   },
   "et_params": {
     "max_depth": 24,

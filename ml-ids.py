@@ -20,6 +20,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from sklearn.model_selection import train_test_split
@@ -128,7 +129,8 @@ class Ml:
         self.et_params = hyperparameters.get("et_params", {})
         self.xgb_params = hyperparameters.get("xgb_params", {})
         self.rf_params = hyperparameters.get("rf_params", {})
-        self.dnn_params = hyperparameters.get("dnn_params", {})
+        self.dnn_multi_params = hyperparameters.get("dnn_multi_params", {})
+        self.dnn_bin_params = hyperparameters.get("dnn_bin_params", {})
         ##############################
 
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
@@ -196,22 +198,31 @@ class Ml:
             print(e)
             print(f"Unable to plot CM for {name}")
 
-    def preprocess(self, dataframe):
-        # One hot encode
-        # dataframe = dataframe.drop(self.drop_cols, axis=1)
-        # df_num = dataframe.drop(self.cat_cols, axis=1)
-        # num_cols = df_num.select_dtypes(include=[np.number]).columns
-        # dataframe = pd.get_dummies(dataframe, columns=self.obj_cols)
-        # df_num = dataframe[num_cols]
-        # labels = dataframe[self.label_header]
-
-        dataframe = dataframe.drop(self.drop_cols, axis=1)
+    def preprocess(self, dataframe, reference_dataframe):
+        df = dataframe.drop(self.drop_cols, axis=1)
+        train_df = reference_dataframe.drop(self.drop_cols, axis=1)
+        
         # Replace NaN values with 0
-        dataframe.fillna(0, inplace=True)
+        df.fillna(0, inplace=True)
+        train_df.fillna(0, inplace=True)
         
         # Replace infinity values with 0
-        dataframe.replace([np.inf, -np.inf], 0, inplace=True)
-        return dataframe
+        df.replace([np.inf, -np.inf], 0, inplace=True)
+        train_df.replace([np.inf, -np.inf], 0, inplace=True)
+        
+        scaler = RobustScaler()
+        
+        # Fit the scaler on the training dataset
+        scaler.fit(train_df)
+        
+        # Transform both the training and evaluation datasets using the fitted scaler
+        df = scaler.transform(df)
+        train_df = scaler.transform(train_df)
+        
+        # df = pd.DataFrame(df, columns=dataframe.columns)
+        # train_df = pd.DataFrame(train_df, columns=reference_dataframe.columns)
+        
+        return df, train_df
 
     def save_metrics_to_csv(self, eval_metrics, filepath):
         """
@@ -241,7 +252,7 @@ class Ml:
         start_time = time.time()
         try:
             y_pred = model.predict(x_test)
-            if name == "Deep Neural Network": y_pred = np.argmax(y_pred, axis=1)
+            if "Deep Neural Network" in name: y_pred = np.argmax(y_pred, axis=1)
             accuracy = metrics.accuracy_score(y_test, y_pred)
             precision = metrics.precision_score(y_test, y_pred, average=self.eval_average)
             recall = metrics.recall_score(y_test, y_pred, average=self.eval_average)
@@ -445,9 +456,9 @@ class Ml:
         if self.save_trained_models: self.save_model(et, file_name)
         return report, eval_metrics
 
-    def run_dnn(self, x_train, y_train_categorical, x_test, y_test):
+    def run_dnn(self, x_train, y_train, x_test, y_test):
         file_name = "Deep Neural Network"
-        y_train_categorical = tf.keras.utils.to_categorical(y_train_categorical, num_classes=self.num_classes)
+        y_train_categorical = tf.keras.utils.to_categorical(y_train, num_classes=self.num_classes)
         y_test_categorical = tf.keras.utils.to_categorical(y_test, num_classes=self.num_classes)
         if self.load_saved_models:
             dnn = self.load_model(file_name)
@@ -458,13 +469,14 @@ class Ml:
             start_time = time.time()
             dnn = tf.keras.Sequential()
             dnn.add(tf.keras.Input(shape=(x_train.shape[1],)))
-            for units in self.dnn_params["dense_layers"]:
-                dnn.add(tf.keras.layers.Dense(units, activation=self.dnn_params["activation"]))
-                dnn.add(tf.keras.layers.Dropout(self.dnn_params["dropout_rate"]))
-            dnn.add(tf.keras.layers.Dense(self.num_classes, activation=self.dnn_params["output_activation"]))
+            for units in self.dnn_multi_params["dense_layers"]:
+                dnn.add(tf.keras.layers.Dense(units, activation=self.dnn_multi_params["activation"]))
+                dnn.add(tf.keras.layers.Dropout(self.dnn_multi_params["dropout_rate"]))
+            
+            dnn.add(tf.keras.layers.Dense(self.num_classes, activation=self.dnn_multi_params["output_activation"]))
             monitor = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=3, verbose=1, mode='auto')
-            dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.dnn_params["learning_rate"]), loss=self.dnn_params["loss"], metrics=self.dnn_params["metrics"])
-            results = dnn.fit(x_train, y_train_categorical, epochs=128, batch_size=512, validation_data=(x_test, y_test_categorical), callbacks=[monitor])
+            dnn.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=self.dnn_multi_params["learning_rate"]), loss=self.dnn_multi_params["loss"], metrics=self.dnn_multi_params["metrics"])
+            results = dnn.fit(x_train, y_train_categorical, epochs=128, batch_size=self.dnn_multi_params["batch_size"], validation_data=(x_test, y_test_categorical), callbacks=[monitor])
             train_time = time.time() - start_time
             train_time_str = f"[{self.get_ts()}] Training time: {train_time:.4f}"
             plt.subplots(figsize=(8, 6))
@@ -474,13 +486,15 @@ class Ml:
             plt.xlabel('Epoch')
             plt.ylabel('Accuracy')
             plt.legend(loc='lower right')
-            plt.savefig(os.path.join(self.output_dir, f"Deep Neural Network.png"))
+            plt.savefig(os.path.join(self.output_dir, f"Deep Neural Network (multi).png"))
             if(self.display_results): plt.show()
             plt.clf()
 
         loss, accuracy = dnn.evaluate(x_test, y_test_categorical)
-        self.printlog(f'Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
-        if self.save_trained_models: self.save_model(dnn, file_name)
+        self.printlog(f'DNN Multi Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
+        
+        if self.save_trained_models: 
+            self.save_model(dnn, file_name)
         try:
             _, report, eval_metrics, test_time = self.evaluate_classification(dnn, file_name, x_test, y_test)
             eval_metrics.append(train_time)
@@ -493,7 +507,6 @@ class Ml:
             traceback.print_exc()
             report = f"\nTest Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}"
             return report, []
-
 
     def model_runner(self, model_func, x_train, y_train, x_test, y_test):
         return model_func(x_train, y_train, x_test, y_test)
@@ -523,6 +536,8 @@ class Ml:
         if self.bool_lr: model_funcs.append(self.run_lr)
         if self.bool_lin_svc: model_funcs.append(self.run_lin_svc)
         if self.bool_dnn: model_funcs.append(self.run_dnn)
+        # if self.bool_dnn: model_funcs.append(self.run_dnn_bin)
+        # if self.bool_dnn: model_funcs.append(self.dnn_test)
 
         # Use ProcessPoolExecutor to run models in parallel
         with concurrent.futures.ProcessPoolExecutor(max_workers=min(self.max_workers, len(model_funcs))) as executor:
@@ -593,19 +608,15 @@ class Ml:
         # Process and split dataset
         if self.use_single_dataset: 
             data_train = self.map_classes(data_train)
+            x = data_train.drop(self.label_header , axis = 1)
+            y = data_train[self.label_header].values
+
+            x, _ = self.preprocess(x, x)
             
-            scaled_train = self.preprocess(data_train)
-
-            x = scaled_train.drop(self.label_header , axis = 1).values
-            y = scaled_train[self.label_header].values
-
             value_counts = data_train[self.label_header].value_counts()
             self.printlog(value_counts)
             
             self.feature_names = data_train.drop(self.label_header, axis = 1)
-
-            y=np.ravel(y)
-            y = y.astype('int')
 
             x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=self.split_test_ratio, random_state=self.rndm_state)
 
@@ -619,16 +630,13 @@ class Ml:
             data_train = self.map_classes(data_train)
             data_test = self.map_classes(data_test)
             
-            scaled_train = self.preprocess(data_train)
-            x_train = scaled_train.drop(self.label_header, axis=1).values
-            y_train = scaled_train[self.label_header].values
-            y_train = y_train.astype('int')
+            x_train = data_train.drop(self.label_header, axis=1)
+            y_train = data_train[self.label_header].values
 
-            # Process testing set
-            scaled_test = self.preprocess(data_test)
-            x_test = scaled_test.drop(self.label_header, axis=1).values
-            y_test = scaled_test[self.label_header].values
-            y_test = y_test.astype('int')
+            x_test = data_test.drop(self.label_header, axis=1)
+            y_test = data_test[self.label_header].values
+            
+            x_test, x_train = self.preprocess(x_test, x_train)
 
             value_counts = data_test[self.label_header].value_counts()
             self.printlog(value_counts)

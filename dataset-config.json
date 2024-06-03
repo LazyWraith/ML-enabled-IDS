@@ -46,7 +46,7 @@
       "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
     },
     "LocalLANCapture": {
-      "train_path": "./input/LocalLANCapture/cic_LocalLAN5h-combined.csv",
+      "train_path": "./input/CICIDS2017/small-CICIDS2017-remapped.csv",
       "test_path": "./input/LocalLANCapture/cic_LocalLAN5h-combined.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
