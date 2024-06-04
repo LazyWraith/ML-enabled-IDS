@@ -561,7 +561,7 @@ class Ml:
         with open(f'{self.output_dir}/log.txt', 'w') as report_file:
             report_file.write(combined_report)
         
-        filepath = f"{self.output_dir}/results.csv"
+        filepath = f"{self.output_dir}/{self.model_save_version}.csv"
         with open(filepath, 'w', newline='') as csvfile:
             # Create a CSV writer object
             csv_writer = csv.writer(csvfile)
