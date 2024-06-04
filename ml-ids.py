@@ -210,7 +210,7 @@ class Ml:
         df.replace([np.inf, -np.inf], 0, inplace=True)
         train_df.replace([np.inf, -np.inf], 0, inplace=True)
         
-        scaler = RobustScaler()
+        scaler = StandardScaler()
         
         # Fit the scaler on the training dataset
         scaler.fit(train_df)
@@ -592,9 +592,9 @@ class Ml:
             # Removes white spaces
             columns = data_train.columns.str.strip().tolist()
 
-        # Assign names for columns
-        data_train.columns = columns
-        data_test.columns = columns
+            # Assign names for columns
+            data_train.columns = columns
+            data_test.columns = columns
         data_train.info()
         if not self.use_single_dataset: data_test.info()
         print(data_train[self.label_header].value_counts())
