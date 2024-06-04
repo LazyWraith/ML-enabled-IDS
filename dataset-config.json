@@ -1,10 +1,10 @@
 {
     "CICIDS2017": {
-      "train_path": "./input/CICIDS2017/small-CICIDS2017-remapped.csv",
+      "train_path": "./input/CICIDS2017/small-CICIDS2017-remapped-deduplicated.csv",
       "test_path": "",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
-      "drop_cols": ["Fwd Header Length.1"],
+      "drop_cols": [],
       "obj_cols": [],
       "label_header": "Label",
       "label_normal_value": "BENIGN",
@@ -24,7 +24,7 @@
     },
     "MixedBaseline": {
       "train_path": "./input/LocalLANCapture/cic_mixed-LocalLAN-benign.csv",
-      "test_path": "./input/LocalLANCapture/cic_mixed-LocalLAN-benign.csv",
+      "test_path": "./input/LocalLANCapture/cic_LocalLAN5h-combined.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
       "drop_cols": [],
@@ -46,7 +46,30 @@
       "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
     },
     "LocalLANCapture": {
-      "train_path": "./input/CICIDS2017/small-CICIDS2017-remapped.csv",
+      "train_path": "./input/CICIDS2017/small-CICIDS2017-remapped-deduplicated.csv",
+      "test_path": "./input/LocalLANCapture/cic_LocalLAN5h-combined.csv",
+      "read_cols_from_csv": true,
+      "cat_cols": ["Label"],
+      "drop_cols": [],
+      "obj_cols": [],
+      "label_header": "Label",
+      "label_normal_value": "BENIGN",
+      "resampling_job":[],
+      "pie_stats": [["Label", "Label"]],
+      "feature_reduced_number": 40,
+      "class_mapping": {
+        "BENIGN": 0,
+        "Bot": 1,
+        "DoS": 2,
+        "BruteForce": 3,
+        "PortScan": 4,
+        "Web Attack": 5,
+        "Others": 6
+      },
+      "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
+    },
+    "Combined": {
+      "train_path": "./input/LocalLANCapture/cic_mixed-LocalLAN-CICIDS.csv",
       "test_path": "./input/LocalLANCapture/cic_LocalLAN5h-combined.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
