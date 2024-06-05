@@ -559,6 +559,7 @@ class Ml:
 
         # Write the combined report to a file
         with open(f'{self.output_dir}/log.txt', 'w') as report_file:
+            report_file.write(f"Model Version: {os.path.join(self.model_save_path, self.model_save_version)}\nTrain Dataset: {self.train_path}\nTest Dataset: {self.test_path}\nSingle Dataset Mode: {self.use_single_dataset}\n")
             report_file.write(combined_report)
         
         filepath = f"{self.output_dir}/{self.model_save_version}.csv"
