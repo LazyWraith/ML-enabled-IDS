@@ -80,6 +80,7 @@ class Ml:
         self.split_train_ratio = settings.get('split_train_ratio', 0.6)
         self.split_test_ratio = 1 - self.split_train_ratio
         self.rndm_state = settings.get('rndm_state', 42)
+        self.delay_start = settings.get("delay_start", 0)
 
         self.kernal_evals = dict()
         self.eval_report = dict()
@@ -512,6 +513,9 @@ class Ml:
         return model_func(x_train, y_train, x_test, y_test)
 
     def run_models(self, x_train, y_train, x_test, y_test):
+        
+        print(f"Delay start: {self.delay_start} second(s)")
+        time.sleep(self.delay_start)
         reports = []
         total_eval_metrics = []
         model_funcs = []

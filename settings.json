@@ -1,12 +1,12 @@
 {
   "display_results": false,
   "generate_statistics_pie": true,
-  "dataset_name": "CICIDS2017",
-  "output_dir": "./output/CICIDS2017 v3.6 RobustScaler",
-  "load_saved_models": false,
-  "save_trained_models": true,
+  "dataset_name": "LocalLANCapture",
+  "output_dir": "./output/LocalLANCapture CICIDS2017 v3.6 StdScaler",
+  "load_saved_models": true,
+  "save_trained_models": false,
   "model_save_path": "./Saved models/CICIDS2017",
-  "model_save_version": "v3.6 RobustScaler",
+  "model_save_version": "v3.6 StdScaler",
   "average": "weighted",
   "bool_gnb": true,
   "bool_xgb": true,
@@ -17,9 +17,10 @@
   "bool_knn": true,
   "bool_lin_svc": true,
   "bool_dnn": true,
-  "use_single_dataset": true,
+  "use_single_dataset": false,
   "split_train_ratio": 0.6,
   "split_test_ratio": 0.4,
   "rndm_state": 42,
-  "max_workers": 6
+  "max_workers": 6,
+  "delay_start": 0
 }
