@@ -65,6 +65,8 @@ class Ml:
         self.model_save_path = f"{self.model_save_path}/{self.model_save_version}"
         self.eval_average = settings.get('average')
         self.max_workers = settings.get('max_workers')
+        self.enable_SMOTE = settings.get('enable_SMOTE')
+        self.scaler = settings.get('scaler')
 
         self.bool_gnb = settings.get('bool_gnb', True)
         self.bool_xgb = settings.get('bool_xgb', True)
@@ -211,7 +213,12 @@ class Ml:
         df.replace([np.inf, -np.inf], 0, inplace=True)
         train_df.replace([np.inf, -np.inf], 0, inplace=True)
         
-        scaler = StandardScaler()
+        if self.scaler == "StandardScaler":
+            scaler = StandardScaler()
+        elif self.scaler == "RobustScaler":
+            scaler = RobustScaler()
+        else:
+            return df, train_df
         
         # Fit the scaler on the training dataset
         scaler.fit(train_df)
@@ -626,8 +633,10 @@ class Ml:
             x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=self.split_test_ratio, random_state=self.rndm_state)
 
             # SMOTE
-            smote = SMOTE(random_state=42)
-            x_train, y_train = smote.fit_resample(x_train, y_train)
+            if self.enable_SMOTE:
+                smote = SMOTE(random_state=42)
+                x_train, y_train = smote.fit_resample(x_train, y_train)
+
             self.run_models(x_train, y_train, x_test, y_test)
 
         # Evaluate using separate train and test datasets

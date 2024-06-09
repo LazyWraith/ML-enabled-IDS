@@ -18,6 +18,8 @@
   "bool_lin_svc": true,
   "bool_dnn": true,
   "use_single_dataset": false,
+  "enable_SMOTE": true,
+  "scaler":"",
   "split_train_ratio": 0.6,
   "split_test_ratio": 0.4,
   "rndm_state": 42,
