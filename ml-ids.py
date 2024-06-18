@@ -619,6 +619,7 @@ class Ml:
 
         # Process and split dataset
         if self.use_single_dataset: 
+            print("Mapping Training/Testing Data...")
             data_train = self.map_classes(data_train)
             x = data_train.drop(self.label_header , axis = 1)
             y = data_train[self.label_header].values
@@ -641,7 +642,9 @@ class Ml:
 
         # Evaluate using separate train and test datasets
         else:
+            print("Mapping Training Data...")
             data_train = self.map_classes(data_train)
+            print("Mapping Testing Data...")
             data_test = self.map_classes(data_test)
             
             x_train = data_train.drop(self.label_header, axis=1)

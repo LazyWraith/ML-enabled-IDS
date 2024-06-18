@@ -86,7 +86,7 @@
     },
     "MixedBaseline": {
       "train_path": "./input/LocalLANCapture/cic_mixed-LocalLAN-benign.csv",
-      "test_path": "./input/LocalLANCapture/cic_LocalLAN13h-combined.csv",
+      "test_path": "./input/LocalLANCapture/cic_LocalLAN8h-combined.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
       "drop_cols": [],
@@ -109,7 +109,7 @@
     },
     "LocalLANCapture": {
       "train_path": "./input/CICIDS2017/small-CICIDS2017-remapped-deduplicated.csv",
-      "test_path": "./input/LocalLANCapture/cic_LocalLAN13h-combined.csv",
+      "test_path": "./input/LocalLANCapture/cic_LocalLAN8h-combined.csv",
       "read_cols_from_csv": true,
       "cat_cols": ["Label"],
       "drop_cols": [],

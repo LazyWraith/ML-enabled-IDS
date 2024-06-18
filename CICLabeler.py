@@ -1,8 +1,8 @@
 import pandas as pd
 
-in_file = './Captures/PortScan/port-scan.csv'
-out_file = './Captures/PortScan/cic_port-scan.csv'
-label = 'PortScan'
+in_file = './Captures/Patator/ftp-patator.csv'
+out_file = './Captures/Patator/cic_ftp-patator.csv'
+label = 'BruteForce'
 
 # Read the source CSV file
 df = pd.read_csv(in_file)
