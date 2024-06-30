@@ -290,7 +290,7 @@ class Ml:
         self.cm_plot(y_test, y_pred, name)
         return y_pred, report, eval_metrics, test_time
 
-    def f_importances(self, coef, names, top=20, title="untitled"):
+    def f_importances(self, coef, names, top=-1, title="untitled"):
         imp = coef
         imp, names = zip(*sorted(list(zip(imp, names)), reverse=True))
 
@@ -415,7 +415,7 @@ class Ml:
         if self.save_trained_models: self.save_model(dt, file_name)
         features_names = self.feature_names
         try:
-            self.f_importances(abs(dt.feature_importances_), features_names, top=18, title=file_name)
+            self.f_importances(abs(dt.feature_importances_), features_names, top=20, title=file_name)
         except:
             print(f"Unable to generate feature importances for {file_name}")
         fig = plt.figure(figsize=(60, 40))
@@ -443,7 +443,7 @@ class Ml:
         self.printlog(report)
         features_names = self.feature_names
         try:
-            self.f_importances(abs(rf.feature_importances_), features_names, top=18, title=file_name)
+            self.f_importances(abs(rf.feature_importances_), features_names, top=20, title=file_name)
         except:
             print(f"Unable to generate feature importances for {file_name}")
         if self.save_trained_models: self.save_model(rf, file_name)
@@ -468,7 +468,7 @@ class Ml:
         self.printlog(report)
         features_names = self.feature_names
         try:
-            self.f_importances(abs(xg_c.feature_importances_), features_names, top=18, title=file_name)
+            self.f_importances(abs(xg_c.feature_importances_), features_names, top=20, title=file_name)
         except:
             print(f"Unable to generate feature importances for {file_name}")
         if self.save_trained_models: self.save_model(xg_c, file_name)
@@ -493,7 +493,7 @@ class Ml:
         self.printlog(report)
         features_names = self.feature_names
         try:
-            self.f_importances(abs(et.feature_importances_), features_names, top=18, title=file_name)
+            self.f_importances(abs(et.feature_importances_), features_names, top=20, title=file_name)
         except:
             print(f"Unable to generate feature importances for {file_name}")
         if self.save_trained_models: self.save_model(et, file_name)
