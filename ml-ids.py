@@ -110,7 +110,7 @@ class Ml:
             self.label_header = config.get("label_header")
             self.label_normal_value = config.get("label_normal_value")
             self.pie_stats = config.get("pie_stats")
-            self.feature_reduced_number = config.get('feature_reduced_number')
+            self.reduced_features = config.get('reduced_features')
             self.resampling_job = config.get('resampling_job')
             self.class_mapping = config.get("class_mapping", {})
             self.num_classes = len(self.class_mapping)
@@ -201,7 +201,17 @@ class Ml:
             print(e)
             print(f"Unable to plot CM for {name}")
 
+    def reduce_features(self, df):
+        if self.reduced_features:
+            columns_to_drop = [col for col in df.columns if col not in self.reduced_features]
+            df = df.drop(columns=columns_to_drop)
+            print("Reduced features:")
+            df.info()
+        return df
+
     def preprocess(self, dataframe, reference_dataframe):
+        dataframe = self.reduce_features(dataframe)
+        reference_dataframe = self.reduce_features(reference_dataframe)
         df = dataframe.drop(self.drop_cols, axis=1)
         train_df = reference_dataframe.drop(self.drop_cols, axis=1)
         
@@ -282,19 +292,28 @@ class Ml:
 
     def f_importances(self, coef, names, top=-1, title="untitled"):
         imp = coef
-        imp, names = zip(*sorted(list(zip(imp, names))))
+        imp, names = zip(*sorted(list(zip(imp, names)), reverse=True))
 
-        # Show all features
-        if top == -1:
-            top = len(names)
+        # Ensure that we don't try to take more features than we have
+        top = min(top, len(names))
         
-        plt.figure(figsize=(10, 10))
-        plt.barh(range(top), imp[::-1][0:top], align='center')
-        plt.yticks(range(top), names[::-1][0:top])
+        # Extract top features and their importances
+        top_imp = imp[:top]
+        top_names = names[:top]
+        
+        # Print the top features
+        for i, (name, importance) in enumerate(zip(top_names, top_imp), start=1):
+            print(f"{i}. {name}: {importance}")
+
+        plt.figure(figsize=(15, 10))
+        plt.barh(range(top), top_imp[::-1], align='center')
+        plt.yticks(range(top), top_names[::-1])
         plt.title(f'Feature importances for {title}')
         plt.savefig(os.path.join(self.output_dir, f"{title} Feature Importance.png"))
-        if (self.display_results): plt.show()
+        if self.display_results:
+            plt.show()
         plt.clf()
+
 
     def run_lr(self, x_train, y_train, x_test, y_test):
         file_name = "Logistic Regression"
@@ -395,7 +414,10 @@ class Ml:
         self.printlog(report)
         if self.save_trained_models: self.save_model(dt, file_name)
         features_names = self.feature_names
-        self.f_importances(abs(dt.feature_importances_), features_names, top=18, title="Decision Tree")
+        try:
+            self.f_importances(abs(dt.feature_importances_), features_names, top=20, title=file_name)
+        except:
+            print(f"Unable to generate feature importances for {file_name}")
         fig = plt.figure(figsize=(60, 40))
         tree.plot_tree(dt, filled=True, feature_names=features_names.columns, fontsize=8)
         plt.savefig(os.path.join(self.output_dir, f"Decision_tree.png"))
@@ -420,7 +442,10 @@ class Ml:
         report = train_time_str + "\n" + report
         self.printlog(report)
         features_names = self.feature_names
-        self.f_importances(abs(rf.feature_importances_), features_names, top=18, title="Random Forest")
+        try:
+            self.f_importances(abs(rf.feature_importances_), features_names, top=20, title=file_name)
+        except:
+            print(f"Unable to generate feature importances for {file_name}")
         if self.save_trained_models: self.save_model(rf, file_name)
         return report, eval_metrics
 
@@ -441,6 +466,11 @@ class Ml:
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
         self.printlog(report)
+        features_names = self.feature_names
+        try:
+            self.f_importances(abs(xg_c.feature_importances_), features_names, top=20, title=file_name)
+        except:
+            print(f"Unable to generate feature importances for {file_name}")
         if self.save_trained_models: self.save_model(xg_c, file_name)
         return report, eval_metrics
 
@@ -461,6 +491,11 @@ class Ml:
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
         self.printlog(report)
+        features_names = self.feature_names
+        try:
+            self.f_importances(abs(et.feature_importances_), features_names, top=20, title=file_name)
+        except:
+            print(f"Unable to generate feature importances for {file_name}")
         if self.save_trained_models: self.save_model(et, file_name)
         return report, eval_metrics
 
