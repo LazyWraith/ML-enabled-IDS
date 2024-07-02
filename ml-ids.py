@@ -205,9 +205,13 @@ class Ml:
         if self.reduced_features:
             columns_to_drop = [col for col in df.columns if col not in self.reduced_features]
             df = df.drop(columns=columns_to_drop)
+            print("Reduced features:")
+            df.info()
         return df
 
     def preprocess(self, dataframe, reference_dataframe):
+        dataframe = self.reduce_features(dataframe)
+        reference_dataframe = self.reduce_features(reference_dataframe)
         df = dataframe.drop(self.drop_cols, axis=1)
         train_df = reference_dataframe.drop(self.drop_cols, axis=1)
         
@@ -224,8 +228,6 @@ class Ml:
         elif self.scaler == "RobustScaler":
             scaler = RobustScaler()
         else:
-            df = self.reduce_features(df)
-            train_df = self.reduce_features(train_df)
             return df, train_df
         
         # Fit the scaler on the training dataset
@@ -238,8 +240,6 @@ class Ml:
         # df = pd.DataFrame(df, columns=dataframe.columns)
         # train_df = pd.DataFrame(train_df, columns=reference_dataframe.columns)
         
-        df = self.reduce_features(df)
-        train_df = self.reduce_features(train_df)
         return df, train_df
 
     def save_metrics_to_csv(self, eval_metrics, filepath):
