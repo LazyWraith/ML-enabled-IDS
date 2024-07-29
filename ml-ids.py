@@ -34,7 +34,8 @@ import time
 import logging
 import logging.handlers
 
-class Ml:
+class IDS:
+    # Configure logging for each workers
     def configure_logging():
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
@@ -49,8 +50,12 @@ class Ml:
         
         logger.addHandler(handler)
 
+    # Initialize components
     def __init__(self):
+        # Set console timestamp start time. 
         self.start_ts = time.time()
+
+        # Load IDS settings from file
         with open('settings.json', 'r') as json_file:
             settings = json.load(json_file)
 
@@ -87,7 +92,7 @@ class Ml:
         self.kernal_evals = dict()
         self.eval_report = dict()
         
-        # Read dataset configuration from JSON
+        # Load dataset specific configuration from JSON
         with open('dataset-config.json', 'r') as file:
             datasets_config = json.load(file)
 
@@ -95,11 +100,11 @@ class Ml:
         if self.dataset_name in datasets_config:
             config = datasets_config[self.dataset_name]
 
-            # Dataset Path
+            # Set dataset Path
             self.train_path = config["train_path"]
             self.test_path = config["test_path"]
 
-            # Dataset Headers
+            # Set dataset Headers
             self.read_cols_from_csv = config.get("read_cols_from_csv", True)
             if (not self.read_cols_from_csv):
                 self.columns = config.get("columns")
@@ -120,7 +125,7 @@ class Ml:
         else:
             print("Invalid dataset name!")
 
-        ###----ML-PARAMETERS-------###
+        # Load ML Hyperparameters
         with open('./Hyperparameter Tuning/hyperparameters.json', 'r') as file:
             hyperparameters = json.load(file)
 
@@ -134,24 +139,28 @@ class Ml:
         self.rf_params = hyperparameters.get("rf_params", {})
         self.dnn_multi_params = hyperparameters.get("dnn_multi_params", {})
         self.dnn_bin_params = hyperparameters.get("dnn_bin_params", {})
-        ##############################
 
+        # Create dir in advance to prevent errors when saving files later
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 
+    # [DEPRICATED] Print both to console and to log file
     def printlog(self, message):
         message = str(message)
         print(message, flush=True)
 
+    # Get timestamp in format [time elapsed in seconds].
     def get_ts(self):
         ts = time.time() - self.start_ts
         return f"{ts:>08.4f}"
 
+    # Save model in pkl file format
     def save_model(self, model, name):
         Path(self.model_save_path).mkdir(parents=True, exist_ok=True)
         filename = os.path.join(self.model_save_path, f"{self.model_save_version} {name}.pkl")
         with open(filename, 'wb') as f:
             pickle.dump(model, f)
 
+    # Load and return models
     def load_model(self, name):
         Path(self.model_save_path).mkdir(parents=True, exist_ok=True)
         filename = os.path.join(self.model_save_path, f"{self.model_save_version} {name}.pkl")
@@ -159,10 +168,12 @@ class Ml:
             model = pickle.load(f)
         return model
 
+    # Map class labels from dataset specific settings
     def map_classes(self, df):
         df.iloc[:, -1] = df.iloc[:, -1].apply(lambda x: self.class_mapping.get(x, 'Others'))
         return df
 
+    # Plot pie chart
     def pie_plot(self, df, cols_list, rows, cols):
         fig, axes = plt.subplots(rows, cols)
         for ax, col in zip(axes.ravel(), cols_list):
@@ -173,9 +184,13 @@ class Ml:
         plt.clf()
 
     def cm_plot(self, y_test, y_predict, name):
-        # Combine all non-"Normal" classes into a single "Attack" class
-        # Flatten CM attack classes into one
-        # plot binary class cm
+        '''
+        Plots both multi-class and binary confusion matrices. This function automatically flattens multi-class CM into a binary CM.
+
+        Paramters:
+        - y_test (actual): Actual values for reference.
+        - y_predict (prediction): Prediction data from ML models.
+        '''
         y_test_combined = np.where(y_test == 0, 0, 1)
         test_predict_combined = np.where(y_predict == 0, 0, 1)
         cm = metrics.confusion_matrix(y_test_combined, test_predict_combined)
@@ -201,7 +216,13 @@ class Ml:
             print(e)
             print(f"Unable to plot CM for {name}")
 
+    # Apply feature reduction
     def reduce_features(self, df):
+        '''
+        Applies feature reduction to dataframe. 
+        Features that are not specified in 'reduced_features' in dataset-config.json will be dropped.
+        To keep all features, set 'reduced_features' = [] in dataset-config.json
+        '''
         if self.reduced_features:
             columns_to_drop = [col for col in df.columns if col not in self.reduced_features]
             df = df.drop(columns=columns_to_drop)
@@ -210,6 +231,17 @@ class Ml:
         return df
 
     def preprocess(self, dataframe, reference_dataframe):
+        '''
+        Preprocess both dataframes. This prepares a dataframe to be used as a training data for ML models.
+        This function reduce features, drop columns, fill N/A and infinity as 0, then scales the dataset.
+        Parameters:
+        - dataframe (test data): This dataset will be sclaed according to the characteristics of reference_dataframe.
+        - reference_dataframe (train data): This dataset is used as reference dataset for scaling. 
+
+        Returns: 
+        - test_dataframe
+        - train_dataframe
+        '''
         dataframe = self.reduce_features(dataframe)
         reference_dataframe = self.reduce_features(reference_dataframe)
         df = dataframe.drop(self.drop_cols, axis=1)
@@ -266,7 +298,16 @@ class Ml:
         print(f"Metrics saved to {filepath}")
 
     def evaluate_classification(self, model, name, x_test, y_test):
-        self.printlog(f"[{self.get_ts()}] Evaluating classifier: {name}...")
+        '''
+        Evaluates ML model performance.
+
+        Parameters:
+        - model: 
+        - name: 
+        - x_test: 
+        - y_test: 
+        '''
+        print(f"[{self.get_ts()}] Evaluating classifier: {name}...")
         start_time = time.time()
         try:
             y_pred = model.predict(x_test)
@@ -280,12 +321,12 @@ class Ml:
             
         except Exception as e:
             traceback.print_exc()
-            self.printlog(f"An error occurred while attempting to evaluate model: {name}")
+            print(f"An error occurred while attempting to evaluate model: {name}")
 
         test_time = time.time() - start_time
         test_time_str = f"[{self.get_ts()}] Testing time: {test_time:.4f}"
         report = report + "\n" + test_time_str
-        # self.printlog(test_time_str)
+        # print(test_time_str)
         eval_metrics = [str(name), accuracy, precision, recall, f1]
         self.cm_plot(y_test, y_pred, name)
         return y_pred, report, eval_metrics, test_time
@@ -322,7 +363,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing Logistic Regression")
+            print(f"[{self.get_ts()}] Preparing Logistic Regression")
             start_time = time.time()
             lr = LogisticRegression(**self.lr_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -331,7 +372,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         if self.save_trained_models: self.save_model(lr, file_name)
         return report, eval_metrics
 
@@ -342,7 +383,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing KNeighborsClassifier")
+            print(f"[{self.get_ts()}] Preparing KNeighborsClassifier")
             start_time = time.time()
             knn = KNeighborsClassifier(**self.knn_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -351,7 +392,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         if self.save_trained_models: self.save_model(knn, file_name)
         return report, eval_metrics
 
@@ -362,7 +403,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing GaussianNB")
+            print(f"[{self.get_ts()}] Preparing GaussianNB")
             start_time = time.time()
             gnb = GaussianNB(**self.gnb_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -371,7 +412,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         if self.save_trained_models: self.save_model(gnb, file_name)
         return report, eval_metrics
 
@@ -382,7 +423,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing Linear SVC(LBasedImpl)")
+            print(f"[{self.get_ts()}] Preparing Linear SVC(LBasedImpl)")
             start_time = time.time()
             lin_svc = svm.LinearSVC(**self.lin_svc_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -391,7 +432,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         if self.save_trained_models: self.save_model(lin_svc, file_name)
         return report, eval_metrics
 
@@ -402,7 +443,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing Decision Tree")
+            print(f"[{self.get_ts()}] Preparing Decision Tree")
             start_time = time.time()
             dt = DecisionTreeClassifier(**self.dt_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -411,7 +452,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         if self.save_trained_models: self.save_model(dt, file_name)
         features_names = self.feature_names
         try:
@@ -431,7 +472,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing RandomForest")
+            print(f"[{self.get_ts()}] Preparing RandomForest")
             start_time = time.time()
             rf = RandomForestClassifier(**self.rf_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -440,7 +481,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         features_names = self.feature_names
         try:
             self.f_importances(abs(rf.feature_importances_), features_names, top=20, title=file_name)
@@ -456,7 +497,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing XGBoost")
+            print(f"[{self.get_ts()}] Preparing XGBoost")
             start_time = time.time()
             xg_c = xgb.XGBClassifier(**self.xgb_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -465,7 +506,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         features_names = self.feature_names
         try:
             self.f_importances(abs(xg_c.feature_importances_), features_names, top=20, title=file_name)
@@ -481,7 +522,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing ExtraTrees")
+            print(f"[{self.get_ts()}] Preparing ExtraTrees")
             start_time = time.time()
             et = ExtraTreesClassifier(**self.et_params).fit(x_train, y_train)
             train_time = time.time() - start_time
@@ -490,7 +531,7 @@ class Ml:
         eval_metrics.append(train_time)
         eval_metrics.append(test_time)
         report = train_time_str + "\n" + report
-        self.printlog(report)
+        print(report)
         features_names = self.feature_names
         try:
             self.f_importances(abs(et.feature_importances_), features_names, top=20, title=file_name)
@@ -508,7 +549,7 @@ class Ml:
             train_time = 0
             train_time_str = "Training time: NaN"
         else:
-            self.printlog(f"[{self.get_ts()}] Preparing DNN")
+            print(f"[{self.get_ts()}] Preparing DNN")
             start_time = time.time()
             dnn = tf.keras.Sequential()
             dnn.add(tf.keras.Input(shape=(x_train.shape[1],)))
@@ -534,7 +575,7 @@ class Ml:
             plt.clf()
 
         loss, accuracy = dnn.evaluate(x_test, y_test_categorical)
-        self.printlog(f'DNN Multi Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
+        print(f'DNN Multi Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}')
         
         if self.save_trained_models: 
             self.save_model(dnn, file_name)
@@ -543,7 +584,7 @@ class Ml:
             eval_metrics.append(train_time)
             eval_metrics.append(test_time)
             report = train_time_str + "\n" + report
-            self.printlog(report)
+            print(report)
             return report, eval_metrics
         except Exception as e:
             print(e)
@@ -625,8 +666,8 @@ class Ml:
             print(f"Metrics saved to {filepath}")
 
     def start(self):
-        self.printlog(f"[{self.get_ts()}] Init complete!")
-        self.printlog(f"[{self.get_ts()}] Reading from {self.train_path}")
+        print(f"[{self.get_ts()}] Init complete!")
+        print(f"[{self.get_ts()}] Reading from {self.train_path}")
 
         # Read Train and Test dataset
         data_train = pd.read_csv(self.train_path)
@@ -646,7 +687,7 @@ class Ml:
         if not self.use_single_dataset: data_test.info()
         print(data_train[self.label_header].value_counts())
 
-        self.printlog(f"[{self.get_ts()}] Mapping outcomes...")
+        print(f"[{self.get_ts()}] Mapping outcomes...")
 
         if self.generate_statistics_pie:
             for i in self.pie_stats:
@@ -662,7 +703,7 @@ class Ml:
             x, _ = self.preprocess(x, x)
             
             value_counts = data_train[self.label_header].value_counts()
-            self.printlog(value_counts)
+            print(value_counts)
             
             self.feature_names = data_train.drop(self.label_header, axis = 1)
 
@@ -691,7 +732,7 @@ class Ml:
             x_test, x_train = self.preprocess(x_test, x_train)
 
             value_counts = data_test[self.label_header].value_counts()
-            self.printlog(value_counts)
+            print(value_counts)
 
             self.feature_names = data_train.drop(self.label_header, axis = 1)
 
@@ -702,5 +743,5 @@ class Ml:
 #-------------------------------- MAIN --------------------------------
 if __name__ == "__main__":
     warnings.filterwarnings('ignore')
-    job = Ml()
+    job = IDS()
     job.start()
