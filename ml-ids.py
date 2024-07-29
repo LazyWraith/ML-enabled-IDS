@@ -82,7 +82,8 @@ class Ml:
         self.split_train_ratio = settings.get('split_train_ratio', 0.6)
         self.split_test_ratio = 1 - self.split_train_ratio
         self.rndm_state = settings.get('rndm_state', 42)
-        self.delay_start = settings.get("delay_start", 0)
+        self.delay_start1 = settings.get("delay_start1", 0)
+        self.delay_start2 = settings.get("delay_start2", 0)
 
         self.kernal_evals = dict()
         self.eval_report = dict()
@@ -301,9 +302,9 @@ class Ml:
         top_imp = imp[:top]
         top_names = names[:top]
         
-        # Print the top features
-        for i, (name, importance) in enumerate(zip(top_names, top_imp), start=1):
-            print(f"{i}. {name}: {importance}")
+        # # Print the top features
+        # for i, (name, importance) in enumerate(zip(top_names, top_imp), start=1):
+        #     print(f"{i}. {name}: {importance}")
 
         plt.figure(figsize=(15, 10))
         plt.barh(range(top), top_imp[::-1], align='center')
@@ -556,8 +557,8 @@ class Ml:
 
     def run_models(self, x_train, y_train, x_test, y_test):
         
-        print(f"Delay start: {self.delay_start} second(s)")
-        time.sleep(self.delay_start)
+        print(f"Delay start: {self.delay_start1} second(s)")
+        time.sleep(self.delay_start1)
         reports = []
         total_eval_metrics = []
         model_funcs = []
@@ -572,6 +573,9 @@ class Ml:
             reports.append(report)
             total_eval_metrics.append(eval_metrics)
         
+        # input("Paused. Press ENTER to continue.")
+        print(f"Delay start: {self.delay_start2} second(s)")
+        time.sleep(self.delay_start2)
         # these models rarely use more than 1 thread, can run them in parallel
         # if self.bool_knn: model_funcs.append(self.run_knn)
         # if self.bool_xgb: model_funcs.append(self.run_xgb)

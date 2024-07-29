@@ -31,7 +31,7 @@
     "target_names": ["BENIGN", "Bot", "DDoS", "DoS GoldenEye", "DoS Hulk", "DoS Slowhttptest", "DoS slowloris", "FTP-Patator", "Heartbleed", "Infiltration", "PortScan", "SSH-Patator", "Web Attack - Brute Force", "Web Attack - Sql Injection", "Web Attack - XSS"]
   },
   "CICIDS2017-S": {
-    "train_path": "./input/CICIDS2017/small-CICIDS2017.csv",
+    "train_path": "./input/CICIDS2017/CICIDS2017-S.csv",
     "test_path": "",
     "read_cols_from_csv": true,
     "cat_cols": ["Label"],
@@ -62,7 +62,7 @@
     "target_names": ["BENIGN", "Bot", "DDoS", "DoS GoldenEye", "DoS Hulk", "DoS Slowhttptest", "DoS slowloris", "FTP-Patator", "Heartbleed", "Infiltration", "PortScan", "SSH-Patator", "Web Attack - Brute Force", "Web Attack - Sql Injection", "Web Attack - XSS"]
   },
   "CICIDS2017-SR": {
-    "train_path": "./input/CICIDS2017/CICIDS2017-S.csv",
+    "train_path": "./input/CICIDS2017/CICIDS2017-SR.csv",
     "test_path": "./input/LocalLANCapture/LAN8h-combined.csv",
     "read_cols_from_csv": true,
     "cat_cols": ["Label"],
@@ -108,7 +108,7 @@
     "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
   },
   "CICIDS2017-SRF40": {
-    "train_path": "./input/CICIDS2017/CICIDS2017-S.csv",
+    "train_path": "./input/CICIDS2017/CICIDS2017-SR.csv",
     "test_path": "./input/LocalLANCapture/LAN8h-combined.csv",
     "read_cols_from_csv": true,
     "cat_cols": ["Label"],
@@ -131,7 +131,7 @@
     "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
   },
   "CICIDS2017-SRF25": {
-    "train_path": "./input/CICIDS2017/CICIDS2017-S.csv",
+    "train_path": "./input/CICIDS2017/CICIDS2017-SR.csv",
     "test_path": "./input/LocalLANCapture/LAN8h-combined.csv",
     "read_cols_from_csv": true,
     "cat_cols": ["Label"],
@@ -200,7 +200,7 @@
     "target_names": ["BENIGN", "Bot", "DoS", "BruteForce", "PortScan", "Web Attack", "Others"]
   },
   "LocalLANCapture": {
-    "train_path": "./input/CICIDS2017/CICIDS2017-S.csv",
+    "train_path": "./input/CICIDS2017/CICIDS2017-SR.csv",
     "test_path": "./input/LocalLANCapture/LAN8h-combined.csv",
     "read_cols_from_csv": true,
     "cat_cols": ["Label"],
