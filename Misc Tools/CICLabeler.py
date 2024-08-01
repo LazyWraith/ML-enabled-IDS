@@ -28,6 +28,7 @@ df = pd.read_csv(in_file)
 benign_label = 'BENIGN'
 attack_label = 'PortScan'
 
+# Attack devices IP
 label_mapping = {
     '192.168.1.20' : str(attack_label),
     '192.168.1.21' : str(attack_label),
